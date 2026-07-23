@@ -7,6 +7,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
@@ -119,6 +120,27 @@ export default function Profile({
                                 </Button>
                             </div>
                         </>
+                    )}
+                </Form>
+            </div>
+
+            <div className="space-y-6">
+                <Heading
+                    variant="small"
+                    title="Log out"
+                    description="End your current session"
+                />
+
+                <Form {...logout.form()}>
+                    {({ processing }) => (
+                        <Button
+                            type="submit"
+                            variant="outline"
+                            disabled={processing}
+                            data-test="logout-button"
+                        >
+                            {processing ? 'Logging out...' : 'Log out'}
+                        </Button>
                     )}
                 </Form>
             </div>
