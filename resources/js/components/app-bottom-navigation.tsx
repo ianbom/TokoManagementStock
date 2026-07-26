@@ -1,6 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
 import { dashboard } from '@/routes';
+import { index as chatList } from '@/routes/chats';
 import { edit as editProfile } from '@/routes/profile';
+import { history as transactionHistory } from '@/routes/transactions';
 import historyIcon from '../../../Design/Dashboard/Vector (1).png';
 import chatIcon from '../../../Design/Dashboard/Vector (2).png';
 import settingsIcon from '../../../Design/Dashboard/Vector (3).png';
@@ -8,8 +10,12 @@ import dashboardIcon from '../../../Design/Dashboard/Vector.png';
 
 const navigation = [
     { label: 'Dashboard', icon: dashboardIcon, href: dashboard().url },
-    { label: 'Riwayat', icon: historyIcon, href: null },
-    { label: 'Obrolan', icon: chatIcon, href: null },
+    {
+        label: 'Riwayat',
+        icon: historyIcon,
+        href: transactionHistory().url,
+    },
+    { label: 'Obrolan', icon: chatIcon, href: chatList().url },
     { label: 'Pengaturan', icon: settingsIcon, href: editProfile().url },
 ];
 
@@ -19,16 +25,20 @@ export function AppBottomNavigation() {
     return (
         <nav
             aria-label="Navigasi utama"
-            className="fixed bottom-0 left-1/2 z-50 grid h-[92px] w-full max-w-[393px] -translate-x-1/2 grid-cols-4 gap-1 rounded-t-[22px] bg-white px-3 pt-2.5 pb-[calc(8px+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(14,34,62,0.07)]"
+            className="fixed bottom-0 left-1/2 z-50 grid h-[54px] w-[calc(100%-16px)] max-w-[377px] -translate-x-1/2 grid-cols-4 gap-1 rounded-t-[14px] bg-white px-2 py-[3px] shadow-[0_-6px_20px_rgba(14,34,62,0.06)]"
         >
             {navigation.map((item) => {
                 const active =
-                    item.label === 'Dashboard'
-                        ? currentPath === item.href
-                        : item.label === 'Pengaturan' &&
-                          currentPath.startsWith('/settings');
+                    item.label === 'Pengaturan'
+                        ? currentPath.startsWith('/settings')
+                        : item.label === 'Obrolan'
+                          ? currentPath.startsWith('/chats')
+                          : item.label === 'Dashboard'
+                            ? currentPath === item.href ||
+                              currentPath.startsWith('/stocks')
+                            : currentPath === item.href;
                 const className = [
-                    'flex h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-[16px] text-[9px] leading-3 transition-transform duration-150 active:scale-[0.98] motion-reduce:transition-none',
+                    'flex h-12 w-12 min-w-0 justify-self-center flex-col items-center justify-center gap-0.5 rounded-[10px] text-[8px] leading-3 transition-transform duration-150 active:scale-[0.98] motion-reduce:transition-none',
                     active
                         ? 'bg-[#fdb900] font-semibold text-[#121212] shadow-[0_6px_14px_rgba(253,185,0,0.22)]'
                         : 'font-normal text-[#858585]',
@@ -46,7 +56,7 @@ export function AppBottomNavigation() {
                             <img
                                 src={item.icon}
                                 alt=""
-                                className="size-7 object-contain"
+                                className="size-5 object-contain"
                             />
                             <span>{item.label}</span>
                         </button>
@@ -64,7 +74,7 @@ export function AppBottomNavigation() {
                         <img
                             src={item.icon}
                             alt=""
-                            className="size-7 object-contain"
+                            className="size-5 object-contain"
                         />
                         <span>{item.label}</span>
                     </Link>

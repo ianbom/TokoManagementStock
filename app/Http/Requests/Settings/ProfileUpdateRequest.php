@@ -5,6 +5,7 @@ namespace App\Http\Requests\Settings;
 use App\Concerns\ProfileValidationRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class ProfileUpdateRequest extends FormRequest
 {
@@ -17,6 +18,14 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->profileRules($this->user()->id);
+        $emailRules = $this->emailRules($this->user()->id);
+        $emailRules[0] = 'sometimes';
+
+        return [
+            'name' => $this->nameRules(),
+            'email' => $emailRules,
+            'password' => ['nullable', 'string', Password::default(), 'confirmed'],
+            'current_password' => ['nullable', 'required_with:password', 'string', 'current_password'],
+        ];
     }
 }

@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     Bell,
     ChevronDown,
@@ -6,6 +6,7 @@ import {
     ChevronUp,
     UserRound,
 } from 'lucide-react';
+import { index as stockList, input } from '@/routes/stocks';
 import type { Auth } from '@/types';
 import heroImage from '../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8974af5901339.png';
 import scanOutIcon from '../../../Design/Dashboard/Group 1 (1).png';
@@ -20,10 +21,10 @@ type DashboardPageProps = {
 };
 
 const quickActions = [
-    { label: 'Scan Barang\nMasuk', icon: scanInIcon },
-    { label: 'Scan Barang\nKeluar', icon: scanOutIcon },
-    { label: 'Supplier', icon: supplierIcon },
-    { label: 'Persediaan', icon: inventoryIcon },
+    { label: 'Scan Barang\nMasuk', icon: scanInIcon, href: input().url },
+    { label: 'Scan Barang\nKeluar', icon: scanOutIcon, href: null },
+    { label: 'Supplier', icon: supplierIcon, href: null },
+    { label: 'Persediaan', icon: inventoryIcon, href: stockList().url },
 ];
 
 const suppliers = [
@@ -158,6 +159,7 @@ export default function Dashboard() {
                     <button
                         key={action.label}
                         type="button"
+                        onClick={() => action.href && router.visit(action.href)}
                         className="flex min-h-[140px] flex-col items-start rounded-[18px] bg-white p-4 text-left shadow-[0_4px_14px_rgba(14,34,62,0.04)] transition-transform duration-150 active:scale-[0.98] motion-reduce:transition-none"
                     >
                         <img
