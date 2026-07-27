@@ -13,6 +13,10 @@ import {
 } from 'lucide-react';
 import type { ChangeEvent, ReactNode } from 'react';
 import { useRef, useState } from 'react';
+import {
+    AppPageHeader,
+    AppPageHeaderHeading,
+} from '@/components/app-page-header';
 import { dashboard } from '@/routes';
 import { confirmation } from '@/routes/stocks';
 import heroImage from '../../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8974af5901339.png';
@@ -120,12 +124,10 @@ export default function InputStock() {
             <Head title="Stock Masuk" />
 
             <section className="min-h-[625px] bg-[#fff9e8] pb-3">
-                <header
-                    className="relative h-[107px] overflow-hidden rounded-b-[31px] bg-cover bg-[position:64%_center] px-[14px] pt-[11px] text-white"
-                    style={{ backgroundImage: `url(${heroImage})` }}
+                <AppPageHeader
+                    backgroundImage={heroImage}
+                    className="h-[107px] rounded-b-[31px] bg-[position:64%_center] px-[14px] pt-[11px] text-white"
                 >
-                    <div className="absolute inset-0 bg-[rgba(8,31,58,0.84)]" />
-
                     <div className="relative flex items-center justify-between">
                         <button
                             type="button"
@@ -149,15 +151,14 @@ export default function InputStock() {
                         </button>
                     </div>
 
-                    <div className="relative mt-[11px] ml-[13px]">
-                        <h1 className="text-[20px] leading-6 font-bold tracking-[-0.3px]">
-                            Stock Masuk
-                        </h1>
-                        <p className="mt-[2px] text-[11px] leading-4 text-white/95">
-                            Tambahkan persediaan barang ke toko Anda
-                        </p>
-                    </div>
-                </header>
+                    <AppPageHeaderHeading
+                        className="relative mt-[11px] ml-[13px]"
+                        title="Stock Masuk"
+                        description="Tambahkan persediaan barang ke toko Anda"
+                        titleClassName="text-[20px] leading-6 font-bold tracking-[-0.3px]"
+                        descriptionClassName="mt-[2px] text-[11px] leading-4 text-white/95"
+                    />
+                </AppPageHeader>
 
                 <form
                     onSubmit={(event) => {

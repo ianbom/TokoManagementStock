@@ -1,0 +1,1 @@
+var e=`/build/assets/stock-out-TUikcWMP.png`;export{e as t};

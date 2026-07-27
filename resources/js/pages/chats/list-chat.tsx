@@ -1,13 +1,18 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     Bell,
     ChevronRight,
     ImageIcon,
     MessageCircleMore,
     Plus,
-    Search,
     SlidersHorizontal,
 } from 'lucide-react';
+import {
+    AppPageHeader,
+    AppPageHeaderHeading,
+    AppPageHeaderSearch,
+} from '@/components/app-page-header';
+import { chat as chatDetail } from '@/routes/chats';
 import heroImage from '../../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8974af5901339.png';
 import chatReference from '../../../../Design/Obrolan/Obrolan.png';
 
@@ -18,6 +23,7 @@ type Conversation = {
     unread?: number;
     photo?: boolean;
     avatarPosition: string;
+    href?: string;
 };
 
 const conversations: Conversation[] = [
@@ -27,6 +33,7 @@ const conversations: Conversation[] = [
         time: '10.24',
         unread: 2,
         avatarPosition: '-38px -229px',
+        href: chatDetail().url,
     },
     {
         name: 'Rahayu Grosir',
@@ -61,12 +68,10 @@ export default function ListChat() {
         <>
             <Head title="Obrolan" />
 
-            <header
-                className="relative h-[170px] overflow-hidden rounded-b-[29px] bg-cover bg-[position:65%_center] px-[25px] pt-[47px] text-white"
-                style={{ backgroundImage: `url(${heroImage})` }}
+            <AppPageHeader
+                backgroundImage={heroImage}
+                className="h-[170px] rounded-b-[29px] bg-[position:65%_center] px-[25px] pt-[47px] text-white"
             >
-                <div className="absolute inset-0 bg-[rgba(8,31,58,0.84)]" />
-
                 <button
                     type="button"
                     aria-label="Buka notifikasi"
@@ -81,40 +86,36 @@ export default function ListChat() {
                 </button>
 
                 <div className="relative">
-                    <h1 className="text-[26px] leading-[27px] font-bold tracking-[-0.5px]">
-                        Obrolan
-                    </h1>
-                    <p className="mt-0.5 text-[15px] leading-5 text-white/95">
-                        Hubungi supplier dan mitra tokomu
-                    </p>
+                    <AppPageHeaderHeading
+                        title="Obrolan"
+                        description="Hubungi supplier dan mitra tokomu"
+                        titleClassName="text-[26px] leading-[27px] font-bold tracking-[-0.5px]"
+                        descriptionClassName="mt-0.5 text-[15px] leading-5 text-white/95"
+                    />
 
-                    <div className="mt-[12px] flex h-[43px] items-center rounded-[16px] bg-white px-4 text-[#333] shadow-[0_3px_12px_rgba(2,20,43,0.05)]">
-                        <Search
-                            aria-hidden="true"
-                            className="size-[21px] shrink-0"
-                            strokeWidth={1.8}
-                        />
-                        <input
-                            type="search"
-                            readOnly
-                            aria-label="Cari nama supplier atau pengguna"
-                            placeholder="Cari nama supplier atau pengguna"
-                            className="min-w-0 flex-1 bg-transparent px-3 text-[12px] text-[#252525] outline-none placeholder:text-[#858585]"
-                        />
-                        <button
-                            type="button"
-                            aria-label="Filter obrolan"
-                            className="flex size-8 items-center justify-center"
-                        >
-                            <SlidersHorizontal
-                                aria-hidden="true"
-                                className="size-[19px]"
-                                strokeWidth={1.9}
-                            />
-                        </button>
-                    </div>
+                    <AppPageHeaderSearch
+                        readOnly
+                        aria-label="Cari nama supplier atau pengguna"
+                        placeholder="Cari nama supplier atau pengguna"
+                        wrapperClassName="mt-[12px] flex h-[43px] items-center rounded-[16px] bg-white px-4 text-[#333] shadow-[0_3px_12px_rgba(2,20,43,0.05)]"
+                        iconClassName="size-[21px] shrink-0"
+                        inputClassName="min-w-0 flex-1 bg-transparent px-3 text-[12px] text-[#252525] outline-none placeholder:text-[#858585]"
+                        trailing={
+                            <button
+                                type="button"
+                                aria-label="Filter obrolan"
+                                className="flex size-8 items-center justify-center"
+                            >
+                                <SlidersHorizontal
+                                    aria-hidden="true"
+                                    className="size-[19px]"
+                                    strokeWidth={1.9}
+                                />
+                            </button>
+                        }
+                    />
                 </div>
-            </header>
+            </AppPageHeader>
 
             <section className="px-[25px] pt-[17px]">
                 <div className="flex h-[20px] items-center justify-between px-0.5">
@@ -190,11 +191,9 @@ function ConversationRow({
     conversation: Conversation;
     divided: boolean;
 }) {
-    return (
-        <button
-            type="button"
-            className={`grid h-[66px] w-full grid-cols-[46px_minmax(0,1fr)_42px] items-center gap-[15px] text-left ${divided ? 'border-t border-[#e6e6e6]' : ''}`}
-        >
+    const className = `grid h-[66px] w-full grid-cols-[46px_minmax(0,1fr)_42px] items-center gap-[15px] text-left ${divided ? 'border-t border-[#e6e6e6]' : ''}`;
+    const content = (
+        <>
             <span
                 aria-hidden="true"
                 className="size-[46px] rounded-full bg-no-repeat"
@@ -229,6 +228,20 @@ function ConversationRow({
                     </span>
                 )}
             </span>
+        </>
+    );
+
+    if (conversation.href) {
+        return (
+            <Link href={conversation.href} prefetch className={className}>
+                {content}
+            </Link>
+        );
+    }
+
+    return (
+        <button type="button" className={className}>
+            {content}
         </button>
     );
 }

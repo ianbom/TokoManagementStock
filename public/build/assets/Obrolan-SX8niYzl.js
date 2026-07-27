@@ -1,0 +1,1 @@
+var e=`/build/assets/Obrolan-DQOSsruS.png`;export{e as t};

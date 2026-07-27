@@ -35,7 +35,9 @@ export function AppBottomNavigation() {
                           ? currentPath.startsWith('/chats')
                           : item.label === 'Dashboard'
                             ? currentPath === item.href ||
-                              currentPath.startsWith('/stocks')
+                              currentPath.startsWith('/stocks') ||
+                              currentPath.startsWith('/pos') ||
+                              currentPath.startsWith('/suppliers')
                             : currentPath === item.href;
                 const className = [
                     'flex h-12 w-12 min-w-0 justify-self-center flex-col items-center justify-center gap-0.5 rounded-[10px] text-[8px] leading-3 transition-transform duration-150 active:scale-[0.98] motion-reduce:transition-none',

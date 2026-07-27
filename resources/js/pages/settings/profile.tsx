@@ -8,15 +8,16 @@ import {
     EyeOff,
     HelpCircle,
     Info,
-    LockKeyhole,
     LogOut,
     Phone,
-    Store,
-    UserRound,
 } from 'lucide-react';
 import type { FormEvent } from 'react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import {
+    AppPageHeader,
+    AppPageHeaderHeading,
+} from '@/components/app-page-header';
 import InputError from '@/components/input-error';
 import {
     Dialog,
@@ -45,13 +46,10 @@ type PageProps = {
 };
 
 const inputClass =
-    'h-[22px] w-full rounded-[7px] border border-[#d5d5d5] bg-white px-[8px] text-[9px] text-[#0e223e] outline-none transition focus:border-[#fdb900] focus:ring-1 focus:ring-[#fdb900]/25';
+    'h-[42px] w-full rounded-[10px] border border-[#d5d5d5] bg-white px-[12px] text-[13px] text-[#0e223e] outline-none transition focus:border-[#fdb900] focus:ring-1 focus:ring-[#fdb900]/25';
 
 export default function Profile() {
     const { auth, business, passwordRules } = usePage<PageProps>().props;
-    const userSection = useRef<HTMLElement>(null);
-    const businessSection = useRef<HTMLElement>(null);
-    const passwordInput = useRef<HTMLInputElement>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
@@ -100,21 +98,16 @@ export default function Profile() {
         });
     };
 
-    const scrollTo = (target: HTMLElement | null) => {
-        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
     return (
         <>
             <Head title="Pengaturan" />
 
             <div className="min-h-[821px] bg-[#fff9e8] pb-[66px] text-[#0e223e]">
-                <header
-                    className="relative h-[107px] overflow-hidden rounded-b-[31px] bg-cover bg-[position:66%_center] px-[18px] pt-[11px] text-white"
-                    style={{ backgroundImage: `url(${heroImage})` }}
+                <AppPageHeader
+                    backgroundImage={heroImage}
+                    overlayClassName="bg-[rgba(8,31,58,0.86)]"
+                    className="h-[107px] rounded-b-[31px] bg-[position:66%_center] px-[18px] pt-[11px] text-white"
                 >
-                    <div className="absolute inset-0 bg-[rgba(8,31,58,0.86)]" />
-
                     <div className="relative flex items-center justify-between">
                         <button
                             type="button"
@@ -140,83 +133,25 @@ export default function Profile() {
                         </button>
                     </div>
 
-                    <div className="relative mt-[13px]">
-                        <h1 className="text-[19px] leading-6 font-bold tracking-[-0.3px]">
-                            Pengaturan
-                        </h1>
-                        <p className="mt-[2px] text-[11px] leading-4 text-white/95">
-                            Kelola data akun dan toko Anda
-                        </p>
-                    </div>
-                </header>
+                    <AppPageHeaderHeading
+                        className="relative mt-[13px]"
+                        title="Pengaturan"
+                        description="Kelola data akun dan toko Anda"
+                        titleClassName="text-[19px] leading-6 font-bold tracking-[-0.3px]"
+                        descriptionClassName="mt-[2px] text-[11px] leading-4 text-white/95"
+                    />
+                </AppPageHeader>
 
-                <nav
-                    aria-label="Bagian pengaturan"
-                    className="mx-[10px] mt-[10px] grid h-[45px] grid-cols-3 rounded-[10px] bg-white p-[5px] shadow-[0_5px_16px_rgba(14,34,62,0.05)]"
-                >
-                    <button
-                        type="button"
-                        onClick={() => scrollTo(userSection.current)}
-                        className="flex items-center justify-between rounded-[8px] bg-[linear-gradient(90deg,#fff8dc_0%,#fff2bd_100%)] px-[7px] text-[8px] font-medium"
-                    >
-                        <span className="flex items-center gap-[7px]">
-                            <span className="flex size-[24px] items-center justify-center rounded-[6px] bg-[#fdb900] text-white shadow-[0_4px_8px_rgba(253,185,0,0.20)]">
-                                <UserRound
-                                    className="size-[15px] fill-white"
-                                    strokeWidth={1.7}
-                                />
-                            </span>
-                            Data Pengguna
-                        </span>
-                        <ChevronRight className="size-3" />
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => scrollTo(businessSection.current)}
-                        className="flex items-center justify-between px-[7px] text-[8px] font-medium"
-                    >
-                        <span className="flex items-center gap-[7px]">
-                            <span className="flex size-[24px] items-center justify-center rounded-[6px] bg-[linear-gradient(145deg,#d51ec9,#8f0f9f)] text-white">
-                                <Store className="size-[14px] fill-white" />
-                            </span>
-                            Data Toko
-                        </span>
-                        <ChevronRight className="size-3" />
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            scrollTo(userSection.current);
-                            window.setTimeout(
-                                () => passwordInput.current?.focus(),
-                                350,
-                            );
-                        }}
-                        className="flex items-center justify-between px-[7px] text-[8px] font-medium"
-                    >
-                        <span className="flex items-center gap-[7px]">
-                            <span className="flex size-[24px] items-center justify-center rounded-[6px] bg-[linear-gradient(145deg,#20c9a8,#009e80)] text-white">
-                                <LockKeyhole className="size-[14px] fill-white/20" />
-                            </span>
-                            Keamanan Akun
-                        </span>
-                        <ChevronRight className="size-3" />
-                    </button>
-                </nav>
-
-                <section
-                    ref={userSection}
-                    className="scroll-mt-3 px-[10px] pt-[12px]"
-                >
-                    <h2 className="px-[7px] text-[13px] leading-4 font-semibold">
+                <section className="px-4 pt-[18px]">
+                    <h2 className="text-[16px] leading-5 font-semibold">
                         Data Pengguna
                     </h2>
-                    <form onSubmit={submitUser} className="mt-[5px]">
-                        <div className="space-y-[5px] rounded-[10px] bg-white px-[11px] py-[8px] shadow-[0_4px_14px_rgba(14,34,62,0.04)]">
+                    <form onSubmit={submitUser} className="mt-2">
+                        <div className="space-y-3 rounded-[14px] bg-white px-4 py-[14px] shadow-[0_4px_14px_rgba(14,34,62,0.04)]">
                             <div>
                                 <label
                                     htmlFor="name"
-                                    className="block text-[8px] leading-[10px] font-medium text-[#151515]"
+                                    className="block text-[12px] leading-4 font-medium text-[#151515]"
                                 >
                                     Nama
                                 </label>
@@ -235,7 +170,7 @@ export default function Profile() {
                                     className={`${inputClass} mt-1`}
                                 />
                                 <InputError
-                                    className="mt-1 text-[8px]"
+                                    className="mt-1 text-[11px]"
                                     message={userForm.errors.name}
                                 />
                             </div>
@@ -243,13 +178,12 @@ export default function Profile() {
                             <div>
                                 <label
                                     htmlFor="password"
-                                    className="block text-[8px] leading-[10px] font-medium text-[#151515]"
+                                    className="block text-[12px] leading-4 font-medium text-[#151515]"
                                 >
                                     Password Baru
                                 </label>
                                 <div className="relative mt-1">
                                     <input
-                                        ref={passwordInput}
                                         id="password"
                                         name="password"
                                         type={
@@ -263,7 +197,7 @@ export default function Profile() {
                                                 event.target.value,
                                             )
                                         }
-                                        className={`${inputClass} pr-8`}
+                                        className={`${inputClass} pr-11`}
                                     />
                                     <button
                                         type="button"
@@ -277,17 +211,17 @@ export default function Profile() {
                                                 ? 'Sembunyikan password baru'
                                                 : 'Tampilkan password baru'
                                         }
-                                        className="absolute inset-y-0 right-0 flex w-8 items-center justify-center text-[#6f7680]"
+                                        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-[#6f7680]"
                                     >
                                         {showPassword ? (
-                                            <EyeOff className="size-[14px]" />
+                                            <EyeOff className="size-[18px]" />
                                         ) : (
-                                            <Eye className="size-[14px]" />
+                                            <Eye className="size-[18px]" />
                                         )}
                                     </button>
                                 </div>
                                 <InputError
-                                    className="mt-1 text-[8px]"
+                                    className="mt-1 text-[11px]"
                                     message={userForm.errors.password}
                                 />
                             </div>
@@ -295,7 +229,7 @@ export default function Profile() {
                             <div>
                                 <label
                                     htmlFor="password_confirmation"
-                                    className="block text-[8px] leading-[10px] font-medium text-[#151515]"
+                                    className="block text-[12px] leading-4 font-medium text-[#151515]"
                                 >
                                     Konfirmasi Password
                                 </label>
@@ -318,7 +252,7 @@ export default function Profile() {
                                                 event.target.value,
                                             )
                                         }
-                                        className={`${inputClass} pr-8`}
+                                        className={`${inputClass} pr-11`}
                                     />
                                     <button
                                         type="button"
@@ -332,24 +266,24 @@ export default function Profile() {
                                                 ? 'Sembunyikan konfirmasi password'
                                                 : 'Tampilkan konfirmasi password'
                                         }
-                                        className="absolute inset-y-0 right-0 flex w-8 items-center justify-center text-[#6f7680]"
+                                        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-[#6f7680]"
                                     >
                                         {showConfirmation ? (
-                                            <EyeOff className="size-[14px]" />
+                                            <EyeOff className="size-[18px]" />
                                         ) : (
-                                            <Eye className="size-[14px]" />
+                                            <Eye className="size-[18px]" />
                                         )}
                                     </button>
                                 </div>
                                 <InputError
-                                    className="mt-1 text-[8px]"
+                                    className="mt-1 text-[11px]"
                                     message={
                                         userForm.errors.password_confirmation
                                     }
                                 />
                             </div>
 
-                            <p className="text-[7px] leading-[9px] text-[#858585]">
+                            <p className="text-[11px] leading-4 text-[#858585]">
                                 Kosongkan password jika tidak ingin mengubahnya
                             </p>
                         </div>
@@ -357,7 +291,7 @@ export default function Profile() {
                         <button
                             type="submit"
                             disabled={userForm.processing}
-                            className="mt-[5px] h-[25px] w-full rounded-[7px] bg-[linear-gradient(90deg,#ffc400_0%,#ffa600_100%)] text-[10px] font-medium text-[#121212] shadow-[0_4px_10px_rgba(253,185,0,0.15)] disabled:opacity-60"
+                            className="mt-2 h-10 w-[170px] rounded-[10px] bg-[linear-gradient(90deg,#ffc400_0%,#ffa600_100%)] text-[12px] font-medium text-[#121212] shadow-[0_4px_10px_rgba(253,185,0,0.15)] disabled:opacity-60"
                             data-test="save-user-settings"
                         >
                             Simpan Data Pengguna
@@ -365,142 +299,132 @@ export default function Profile() {
                     </form>
                 </section>
 
-                <section
-                    ref={businessSection}
-                    className="scroll-mt-3 px-[10px] pt-[9px]"
-                >
-                    <h2 className="px-[7px] text-[13px] leading-4 font-semibold">
+                <section className="px-4 pt-4">
+                    <h2 className="text-[16px] leading-5 font-semibold">
                         Data Toko
                     </h2>
-                    <form
-                        onSubmit={submitBusiness}
-                        className="mt-[5px] rounded-[10px] bg-white px-[11px] py-[8px] shadow-[0_4px_14px_rgba(14,34,62,0.04)]"
-                    >
-                        <div className="space-y-[3px]">
-                            <BusinessRow label="Tipe Toko">
-                                <div className="relative">
-                                    <select
-                                        name="business_category"
-                                        value={
-                                            businessForm.data.business_category
+                    <form onSubmit={submitBusiness} className="mt-2">
+                        <div className="rounded-[14px] bg-white px-4 py-[14px] shadow-[0_4px_14px_rgba(14,34,62,0.04)]">
+                            <div className="space-y-3">
+                                <BusinessRow label="Tipe Toko">
+                                    <div className="relative">
+                                        <select
+                                            name="business_category"
+                                            value={
+                                                businessForm.data
+                                                    .business_category
+                                            }
+                                            onChange={(event) =>
+                                                businessForm.setData(
+                                                    'business_category',
+                                                    event.target.value,
+                                                )
+                                            }
+                                            className={`${inputClass} appearance-none pr-10`}
+                                        >
+                                            <option>Toko Kelontong</option>
+                                            <option>Minimarket</option>
+                                            <option>Grosir</option>
+                                            <option>Supplier</option>
+                                            <option>Lainnya</option>
+                                        </select>
+                                        <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-[#151515]" />
+                                    </div>
+                                    <InputError
+                                        className="mt-1 text-[11px]"
+                                        message={
+                                            businessForm.errors
+                                                .business_category
                                         }
-                                        onChange={(event) =>
-                                            businessForm.setData(
-                                                'business_category',
-                                                event.target.value,
-                                            )
-                                        }
-                                        className={`${inputClass} appearance-none pr-7`}
-                                    >
-                                        <option>Toko Kelontong</option>
-                                        <option>Minimarket</option>
-                                        <option>Grosir</option>
-                                        <option>Supplier</option>
-                                        <option>Lainnya</option>
-                                    </select>
-                                    <ChevronDown className="pointer-events-none absolute top-1/2 right-[8px] size-3 -translate-y-1/2 text-[#151515]" />
-                                </div>
-                                <InputError
-                                    className="mt-1 text-[8px]"
-                                    message={
-                                        businessForm.errors.business_category
-                                    }
-                                />
-                            </BusinessRow>
-
-                            <BusinessRow label="Nama Toko">
-                                <input
-                                    name="name"
-                                    required
-                                    value={businessForm.data.name}
-                                    onChange={(event) =>
-                                        businessForm.setData(
-                                            'name',
-                                            event.target.value,
-                                        )
-                                    }
-                                    className={inputClass}
-                                />
-                                <InputError
-                                    className="mt-1 text-[8px]"
-                                    message={businessForm.errors.name}
-                                />
-                            </BusinessRow>
-
-                            <BusinessRow label="Nama Owner">
-                                <input
-                                    name="owner_name"
-                                    required
-                                    value={businessForm.data.owner_name}
-                                    onChange={(event) =>
-                                        businessForm.setData(
-                                            'owner_name',
-                                            event.target.value,
-                                        )
-                                    }
-                                    className={inputClass}
-                                />
-                                <InputError
-                                    className="mt-1 text-[8px]"
-                                    message={businessForm.errors.owner_name}
-                                />
-                            </BusinessRow>
-
-                            <BusinessRow label="No HP">
-                                <div className="relative">
-                                    <Phone className="absolute top-1/2 left-[8px] size-[12px] -translate-y-1/2 fill-[#6f7680] text-[#6f7680]" />
-                                    <input
-                                        name="phone"
-                                        required
-                                        inputMode="tel"
-                                        value={businessForm.data.phone}
-                                        onChange={(event) =>
-                                            businessForm.setData(
-                                                'phone',
-                                                event.target.value,
-                                            )
-                                        }
-                                        className={`${inputClass} pl-[25px]`}
                                     />
-                                </div>
-                                <InputError
-                                    className="mt-1 text-[8px]"
-                                    message={businessForm.errors.phone}
-                                />
-                            </BusinessRow>
+                                </BusinessRow>
 
-                            <BusinessRow label="Alamat" alignStart>
-                                <textarea
-                                    name="address"
-                                    required
-                                    value={businessForm.data.address}
-                                    onChange={(event) =>
-                                        businessForm.setData(
-                                            'address',
-                                            event.target.value,
-                                        )
-                                    }
-                                    className="h-[38px] w-full resize-none rounded-[7px] border border-[#d5d5d5] bg-white px-[8px] py-[6px] text-[9px] text-[#0e223e] transition outline-none focus:border-[#fdb900] focus:ring-1 focus:ring-[#fdb900]/25"
-                                />
-                                <InputError
-                                    className="mt-1 text-[8px]"
-                                    message={businessForm.errors.address}
-                                />
-                            </BusinessRow>
-                        </div>
+                                <BusinessRow label="Nama Toko">
+                                    <input
+                                        name="name"
+                                        required
+                                        value={businessForm.data.name}
+                                        onChange={(event) =>
+                                            businessForm.setData(
+                                                'name',
+                                                event.target.value,
+                                            )
+                                        }
+                                        className={inputClass}
+                                    />
+                                    <InputError
+                                        className="mt-1 text-[11px]"
+                                        message={businessForm.errors.name}
+                                    />
+                                </BusinessRow>
 
-                        <div className="mt-[6px] flex min-h-[38px] items-center rounded-[8px] bg-[linear-gradient(90deg,#fff9e8,#fff4d4)] px-[9px] text-[8px] leading-[10px] text-[#0e223e]">
-                            <span className="mr-[9px] flex size-[18px] shrink-0 items-center justify-center rounded-full bg-[#f6a900] text-white">
-                                <Info className="size-[11px]" />
-                            </span>
-                            Pastikan data toko sesuai agar supplier lebih mudah
-                            menemukan bisnis Anda
+                                <BusinessRow label="Nama Owner">
+                                    <input
+                                        name="owner_name"
+                                        required
+                                        value={businessForm.data.owner_name}
+                                        onChange={(event) =>
+                                            businessForm.setData(
+                                                'owner_name',
+                                                event.target.value,
+                                            )
+                                        }
+                                        className={inputClass}
+                                    />
+                                    <InputError
+                                        className="mt-1 text-[11px]"
+                                        message={businessForm.errors.owner_name}
+                                    />
+                                </BusinessRow>
+
+                                <BusinessRow label="No HP">
+                                    <div className="relative">
+                                        <Phone className="absolute top-1/2 left-3 size-4 -translate-y-1/2 fill-[#6f7680] text-[#6f7680]" />
+                                        <input
+                                            name="phone"
+                                            required
+                                            inputMode="tel"
+                                            value={businessForm.data.phone}
+                                            onChange={(event) =>
+                                                businessForm.setData(
+                                                    'phone',
+                                                    event.target.value,
+                                                )
+                                            }
+                                            className={`${inputClass} pl-10`}
+                                        />
+                                    </div>
+                                    <InputError
+                                        className="mt-1 text-[11px]"
+                                        message={businessForm.errors.phone}
+                                    />
+                                </BusinessRow>
+
+                                <BusinessRow label="Alamat">
+                                    <textarea
+                                        name="address"
+                                        required
+                                        value={businessForm.data.address}
+                                        onChange={(event) =>
+                                            businessForm.setData(
+                                                'address',
+                                                event.target.value,
+                                            )
+                                        }
+                                        className="h-20 w-full resize-none rounded-[10px] border border-[#d5d5d5] bg-white px-3 py-[10px] text-[13px] text-[#0e223e] transition outline-none focus:border-[#fdb900] focus:ring-1 focus:ring-[#fdb900]/25"
+                                    />
+                                    <InputError
+                                        className="mt-1 text-[11px]"
+                                        message={businessForm.errors.address}
+                                    />
+                                </BusinessRow>
+                            </div>
                         </div>
 
                         <button
                             type="submit"
                             disabled={businessForm.processing}
-                            className="mt-[6px] h-[28px] w-full rounded-[7px] bg-[linear-gradient(90deg,#ffc400_0%,#ffa600_100%)] text-[10px] font-medium text-[#121212] shadow-[0_4px_10px_rgba(253,185,0,0.15)] disabled:opacity-60"
+                            className="mt-2 h-10 w-[150px] rounded-[10px] bg-[linear-gradient(90deg,#ffc400_0%,#ffa600_100%)] text-[12px] font-medium text-[#121212] shadow-[0_4px_10px_rgba(253,185,0,0.15)] disabled:opacity-60"
                             data-test="save-business-settings"
                         >
                             Simpan Data Toko
@@ -508,40 +432,40 @@ export default function Profile() {
                     </form>
                 </section>
 
-                <section className="mx-[10px] mt-[9px] overflow-hidden rounded-[10px] bg-white shadow-[0_4px_14px_rgba(14,34,62,0.04)]">
+                <section className="mx-4 mt-4 overflow-hidden rounded-[14px] bg-white shadow-[0_4px_14px_rgba(14,34,62,0.04)]">
                     <Form {...logout.form()}>
                         {({ processing }) => (
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="flex h-[30px] w-full items-center px-[12px] text-[9px]"
+                                className="flex h-11 w-full items-center px-4 text-[12px]"
                                 data-test="logout-button"
                             >
-                                <span className="mr-[10px] flex size-[19px] items-center justify-center rounded-[5px] bg-[#ff3b22] text-white">
-                                    <LogOut className="size-[12px]" />
+                                <span className="mr-3 flex size-6 items-center justify-center rounded-[7px] bg-[#ff3b22] text-white">
+                                    <LogOut className="size-[14px]" />
                                 </span>
                                 Logout
-                                <ChevronRight className="ml-auto size-3 text-[#666666]" />
+                                <ChevronRight className="ml-auto size-4 text-[#666666]" />
                             </button>
                         )}
                     </Form>
-                    <div className="flex h-[30px] items-center border-t border-[#ededed] px-[12px] text-[9px]">
-                        <span className="mr-[10px] flex size-[19px] items-center justify-center rounded-[5px] bg-[#1f54dc] text-white">
-                            <Info className="size-[12px]" />
+                    <div className="flex h-11 items-center border-t border-[#ededed] px-4 text-[12px]">
+                        <span className="mr-3 flex size-6 items-center justify-center rounded-[7px] bg-[#1f54dc] text-white">
+                            <Info className="size-[14px]" />
                         </span>
                         Versi Aplikasi
                         <span className="ml-auto text-[#858585]">1.2.3</span>
-                        <ChevronRight className="ml-[8px] size-3 text-[#666666]" />
+                        <ChevronRight className="ml-2 size-4 text-[#666666]" />
                     </div>
                     <button
                         type="button"
-                        className="flex h-[30px] w-full items-center border-t border-[#ededed] px-[12px] text-[9px]"
+                        className="flex h-11 w-full items-center border-t border-[#ededed] px-4 text-[12px]"
                     >
-                        <span className="mr-[10px] flex size-[19px] items-center justify-center rounded-[5px] bg-[#2bbca8] text-white">
-                            <HelpCircle className="size-[13px]" />
+                        <span className="mr-3 flex size-6 items-center justify-center rounded-[7px] bg-[#2bbca8] text-white">
+                            <HelpCircle className="size-[15px]" />
                         </span>
                         Bantuan
-                        <ChevronRight className="ml-auto size-3 text-[#666666]" />
+                        <ChevronRight className="ml-auto size-4 text-[#666666]" />
                     </button>
                 </section>
             </div>
@@ -614,19 +538,13 @@ export default function Profile() {
 function BusinessRow({
     label,
     children,
-    alignStart = false,
 }: {
     label: string;
     children: React.ReactNode;
-    alignStart?: boolean;
 }) {
     return (
-        <div
-            className={`grid grid-cols-[66px_1fr] gap-[8px] ${alignStart ? 'items-start' : 'items-center'}`}
-        >
-            <span
-                className={`text-[8px] leading-[10px] font-medium ${alignStart ? 'pt-[7px]' : ''}`}
-            >
+        <div className="space-y-1.5">
+            <span className="block text-[12px] leading-4 font-medium">
                 {label}
             </span>
             <div>{children}</div>

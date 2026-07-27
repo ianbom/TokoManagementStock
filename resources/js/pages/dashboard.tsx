@@ -6,7 +6,13 @@ import {
     ChevronUp,
     UserRound,
 } from 'lucide-react';
+import {
+    AppPageHeader,
+    AppPageHeaderHeading,
+} from '@/components/app-page-header';
+import { index as pos } from '@/routes/pos';
 import { index as stockList, input } from '@/routes/stocks';
+import { index as supplierList } from '@/routes/suppliers';
 import type { Auth } from '@/types';
 import heroImage from '../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8974af5901339.png';
 import scanOutIcon from '../../../Design/Dashboard/Group 1 (1).png';
@@ -22,8 +28,8 @@ type DashboardPageProps = {
 
 const quickActions = [
     { label: 'Scan Barang\nMasuk', icon: scanInIcon, href: input().url },
-    { label: 'Scan Barang\nKeluar', icon: scanOutIcon, href: null },
-    { label: 'Supplier', icon: supplierIcon, href: null },
+    { label: 'Scan Barang\nKeluar', icon: scanOutIcon, href: pos().url },
+    { label: 'Supplier', icon: supplierIcon, href: supplierList().url },
     { label: 'Persediaan', icon: inventoryIcon, href: stockList().url },
 ];
 
@@ -48,14 +54,10 @@ export default function Dashboard() {
     return (
         <>
             <Head title="Dashboard" />
-            <header
-                className="relative h-[294px] overflow-hidden rounded-b-[36px] bg-cover bg-[position:65%_center] px-5 pt-[50px] text-white"
-                style={{
-                    backgroundImage: 'url(' + heroImage + ')',
-                }}
+            <AppPageHeader
+                backgroundImage={heroImage}
+                className="h-[294px] rounded-b-[36px] bg-[position:65%_center] px-5 pt-[50px] text-white"
             >
-                <div className="absolute inset-0 bg-[rgba(8,31,58,0.84)]" />
-
                 <div className="relative flex items-center justify-between">
                     <div className="flex min-w-0 items-center gap-4">
                         <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#67c8ee] text-[#0e223e] ring-2 ring-white/10">
@@ -89,15 +91,14 @@ export default function Dashboard() {
                     </button>
                 </div>
 
-                <div className="relative mt-[42px]">
-                    <h1 className="text-[26px] leading-[1.2] font-bold tracking-[-0.4px]">
-                        Halo, Ketintang Mart {'\u{1F44B}'}
-                    </h1>
-                    <p className="mt-1 text-[15px] leading-6 text-white/90">
-                        Yuk cek dan lengkapi persediaan toko anda!
-                    </p>
-                </div>
-            </header>
+                <AppPageHeaderHeading
+                    className="relative mt-[42px]"
+                    title={<>Halo, Ketintang Mart {'\u{1F44B}'}</>}
+                    description="Yuk cek dan lengkapi persediaan toko anda!"
+                    titleClassName="text-[26px] leading-[1.2] font-bold tracking-[-0.4px]"
+                    descriptionClassName="mt-1 text-[15px] leading-6 text-white/90"
+                />
+            </AppPageHeader>
 
             <section className="relative z-10 mx-5 -mt-14 rounded-[20px] bg-[linear-gradient(135deg,#fdb900_0%,#ffc333_100%)] p-4 text-[#0e223e] shadow-[0_8px_20px_rgba(255,179,0,0.10)]">
                 <div className="flex items-center justify-between">

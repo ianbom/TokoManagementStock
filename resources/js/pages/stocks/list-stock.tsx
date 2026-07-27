@@ -5,8 +5,12 @@ import {
     ClipboardList,
     Layers3,
     ListFilter,
-    Search,
 } from 'lucide-react';
+import {
+    AppPageHeader,
+    AppPageHeaderHeading,
+    AppPageHeaderSearch,
+} from '@/components/app-page-header';
 import stockReference from '../../../../Design/Stock/list-stock.png';
 
 type Product = {
@@ -70,30 +74,24 @@ export default function ListStock() {
             <Head title="Persediaan" />
 
             <div className="px-4 pt-[10px]">
-                <header>
-                    <h1 className="text-[20px] leading-6 font-bold tracking-[-0.35px]">
-                        Persediaan
-                    </h1>
-                    <p className="mt-0.5 text-[10px] leading-4 text-[#646464]">
-                        Lihat semua produk yang tersedia di toko
-                    </p>
-                </header>
+                <AppPageHeader>
+                    <AppPageHeaderHeading
+                        title="Persediaan"
+                        description="Lihat semua produk yang tersedia di toko"
+                        titleClassName="text-[20px] leading-6 font-bold tracking-[-0.35px]"
+                        descriptionClassName="mt-0.5 text-[10px] leading-4 text-[#646464]"
+                    />
+                </AppPageHeader>
 
                 <div className="mt-[5px] flex gap-2">
-                    <label className="flex h-[33px] min-w-0 flex-1 items-center rounded-[11px] bg-white px-3 shadow-[0_3px_10px_rgba(14,34,62,0.05)]">
-                        <Search
-                            aria-hidden="true"
-                            className="size-[15px] shrink-0 text-[#858585]"
-                            strokeWidth={1.8}
-                        />
-                        <input
-                            type="search"
-                            readOnly
-                            aria-label="Cari produk"
-                            placeholder="Cari produk"
-                            className="min-w-0 flex-1 bg-transparent px-3 text-[12px] outline-none placeholder:text-[#858585]"
-                        />
-                    </label>
+                    <AppPageHeaderSearch
+                        readOnly
+                        aria-label="Cari produk"
+                        placeholder="Cari produk"
+                        wrapperClassName="flex h-[33px] min-w-0 flex-1 items-center rounded-[11px] bg-white px-3 shadow-[0_3px_10px_rgba(14,34,62,0.05)]"
+                        iconClassName="size-[15px] shrink-0 text-[#858585]"
+                        inputClassName="min-w-0 flex-1 bg-transparent px-3 text-[12px] outline-none placeholder:text-[#858585]"
+                    />
                     <button
                         type="button"
                         aria-label="Filter produk"

@@ -18,6 +18,7 @@ createInertiaApp({
                 return AuthLayout;
             case name === 'stocks/stock-in-confirmation':
             case name === 'stocks/stock-in-notification':
+            case name === 'chats/chat':
                 return null;
             case name === 'settings/profile':
                 return AppLayout;

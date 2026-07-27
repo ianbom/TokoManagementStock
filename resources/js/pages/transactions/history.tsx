@@ -11,11 +11,15 @@ import {
     ChevronRight,
     ClipboardList,
     RefreshCcw,
-    Search,
     ShoppingCart,
     SlidersHorizontal,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import {
+    AppPageHeader,
+    AppPageHeaderHeading,
+    AppPageHeaderSearch,
+} from '@/components/app-page-header';
 import { dashboard } from '@/routes';
 import heroImage from '../../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8974af5901339.png';
 
@@ -124,11 +128,11 @@ export default function TransactionHistory() {
         <>
             <Head title="Riwayat Transaksi" />
 
-            <header
-                className="relative h-[126px] overflow-hidden bg-cover bg-[position:65%_center] px-3.5 pt-3.5 text-white"
-                style={{ backgroundImage: `url(${heroImage})` }}
+            <AppPageHeader
+                backgroundImage={heroImage}
+                overlayClassName="bg-[rgba(8,31,58,0.86)]"
+                className="h-[170px] rounded-b-[29px] bg-[position:65%_center] px-3.5 pt-3.5 text-white"
             >
-                <div className="absolute inset-0 bg-[rgba(8,31,58,0.86)]" />
                 <div className="relative flex items-center justify-between">
                     <Link
                         href={dashboard().url}
@@ -155,35 +159,27 @@ export default function TransactionHistory() {
                     </button>
                 </div>
                 <div className="relative mt-2">
-                    <h1 className="text-[22px] leading-6 font-bold tracking-[-0.5px]">
-                        Riwayat Transaksi
-                    </h1>
-                    <p className="mt-0.5 text-[11px] leading-4 text-white/95">
-                        Pantau semua aktivitas stok toko Anda
-                    </p>
+                    <AppPageHeaderHeading
+                        title="Riwayat Transaksi"
+                        description="Pantau semua aktivitas stok toko Anda"
+                        titleClassName="text-[22px] leading-6 font-bold tracking-[-0.5px]"
+                        descriptionClassName="mt-0.5 text-[11px] leading-4 text-white/95"
+                    />
+
+                    <AppPageHeaderSearch
+                        readOnly
+                        aria-label="Cari produk atau supplier"
+                        placeholder="Cari produk atau supplier"
+                        wrapperClassName="mt-[9px] flex h-[43px] items-center rounded-[16px] bg-white px-4 text-[#333] shadow-[0_3px_12px_rgba(2,20,43,0.05)]"
+                        iconClassName="size-[21px] shrink-0"
+                        inputClassName="min-w-0 flex-1 bg-transparent px-3 text-[12px] text-[#252525] outline-none placeholder:text-[#858585]"
+                    />
                 </div>
-            </header>
+            </AppPageHeader>
 
-            <section className="relative z-10 -mt-[17px] rounded-t-[20px] bg-[#fff9e8] pt-3">
-                <div className="rounded-[18px] bg-white px-3.5 pt-2.5 pb-2 shadow-[0_6px_18px_rgba(253,185,0,0.08)]">
-                    <label className="flex h-8 items-center gap-3 rounded-[8px] border border-[#dedede] px-3 text-[#999999]">
-                        <Search
-                            aria-hidden="true"
-                            className="size-[17px] shrink-0"
-                            strokeWidth={2}
-                        />
-                        <span className="sr-only">
-                            Cari produk atau supplier
-                        </span>
-                        <input
-                            type="search"
-                            readOnly
-                            placeholder="Cari produk atau supplier"
-                            className="h-full min-w-0 flex-1 bg-transparent text-[10px] text-[#252525] outline-none placeholder:text-[#999999]"
-                        />
-                    </label>
-
-                    <div className="mt-[7px] grid grid-cols-[58px_88px_88px_1fr] gap-2">
+            <section className="bg-[#fff9e8] pt-[9px]">
+                <div className="rounded-[18px] bg-white px-3.5 py-2.5 shadow-[0_6px_18px_rgba(253,185,0,0.08)]">
+                    <div className="grid grid-cols-[58px_88px_88px_1fr] gap-2">
                         <button
                             type="button"
                             aria-pressed="true"
