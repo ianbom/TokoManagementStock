@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import {
     Bell,
+    ChevronLeft,
     ChevronRight,
     MapPin,
     PackageSearch,
@@ -16,58 +17,35 @@ import heroImage from '../../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8
 import supplierReference from '../../../../Design/Obrolan/Obrolan.png';
 
 type Supplier = {
-    slug: string;
+    id: number;
+    code: string;
     name: string;
     category: string;
     address: string;
-    distance: string;
-    avatarPosition: string;
+    phone: string | null;
+    products_count: number;
 };
 
-const suppliers: Supplier[] = [
-    {
-        slug: 'lumintu-grosir-ktt',
-        name: 'Lumintu Grosir KTT',
-        category: 'Grosir Sembako',
-        address: 'Jl. Ketintang Baru Selatan No. 7',
-        distance: '1 km',
-        avatarPosition: '-38px -229px',
-    },
-    {
-        slug: 'rahayu-grosir',
-        name: 'Rahayu Grosir',
-        category: 'Kebutuhan Harian',
-        address: 'Jl. Ketintang Madya No. 17',
-        distance: '1,8 km',
-        avatarPosition: '-38px -296px',
-    },
-    {
-        slug: 'kevin-frozen-food',
-        name: 'Kevin Frozen Food',
-        category: 'Frozen Food',
-        address: 'Jl. Karah No. 19',
-        distance: '2,1 km',
-        avatarPosition: '-38px -360px',
-    },
-    {
-        slug: 'sumber-makmur',
-        name: 'Sumber Makmur',
-        category: 'Grosir Minuman',
-        address: 'Jl. Gayungan PTT No. 12',
-        distance: '2,7 km',
-        avatarPosition: '-38px -425px',
-    },
-    {
-        slug: 'mitra-sembako-surabaya',
-        name: 'Mitra Sembako Surabaya',
-        category: 'Distributor Sembako',
-        address: 'Jl. Ahmad Yani No. 88',
-        distance: '3,2 km',
-        avatarPosition: '-38px -493px',
-    },
+type Paginated<T> = {
+    data: T[];
+    total: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+};
+
+const avatarPositions = [
+    '-38px -229px',
+    '-38px -296px',
+    '-38px -360px',
+    '-38px -425px',
+    '-38px -493px',
 ];
 
-export default function ListSupplier() {
+export default function ListSupplier({
+    suppliers,
+}: {
+    suppliers: Paginated<Supplier>;
+}) {
     return (
         <>
             <Head title="Supplier" />
@@ -97,7 +75,6 @@ export default function ListSupplier() {
                         titleClassName="text-[26px] leading-[27px] font-bold tracking-[-0.5px]"
                         descriptionClassName="mt-0.5 text-[15px] leading-5 text-white/95"
                     />
-
                     <AppPageHeaderSearch
                         readOnly
                         aria-label="Cari nama atau kategori supplier"
@@ -128,22 +105,47 @@ export default function ListSupplier() {
                         Daftar Supplier
                     </h2>
                     <span className="rounded-full bg-[#fff0cd] px-2.5 py-1 text-[10px] font-semibold text-[#f29a00]">
-                        5 Supplier
+                        {suppliers.total} Supplier
                     </span>
                 </div>
 
                 <div className="mt-[11px] space-y-[8px]">
-                    {suppliers.map((supplier) => (
-                        <SupplierCard key={supplier.name} supplier={supplier} />
-                    ))}
+                    {suppliers.data.length ? (
+                        suppliers.data.map((supplier, index) => (
+                            <SupplierCard
+                                key={supplier.id}
+                                supplier={supplier}
+                                avatarPosition={
+                                    avatarPositions[
+                                        index % avatarPositions.length
+                                    ]
+                                }
+                            />
+                        ))
+                    ) : (
+                        <p className="rounded-[14px] bg-white px-4 py-8 text-center text-[12px] text-[#858585] shadow-[0_6px_18px_rgba(14,34,62,0.035)]">
+                            Belum ada supplier tersedia.
+                        </p>
+                    )}
                 </div>
+
+                <Pagination
+                    previous={suppliers.prev_page_url}
+                    next={suppliers.next_page_url}
+                />
             </section>
         </>
     );
 }
 
-function SupplierCard({ supplier }: { supplier: Supplier }) {
-    const href = buy({ query: { supplier: supplier.slug } }).url;
+function SupplierCard({
+    supplier,
+    avatarPosition,
+}: {
+    supplier: Supplier;
+    avatarPosition: string;
+}) {
+    const href = buy(supplier.id).url;
 
     return (
         <article className="grid h-[86px] grid-cols-[50px_minmax(0,1fr)_31px] items-center gap-[12px] rounded-[14px] bg-white px-[13px] shadow-[0_6px_18px_rgba(14,34,62,0.035)]">
@@ -152,11 +154,10 @@ function SupplierCard({ supplier }: { supplier: Supplier }) {
                 className="size-[50px] rounded-full bg-no-repeat"
                 style={{
                     backgroundImage: `url(${supplierReference})`,
-                    backgroundPosition: supplier.avatarPosition,
+                    backgroundPosition: avatarPosition,
                     backgroundSize: '393px auto',
                 }}
             />
-
             <div className="min-w-0">
                 <div className="flex items-center gap-2">
                     <h3 className="truncate text-[13px] leading-[18px] font-bold tracking-[-0.15px] text-[#252525]">
@@ -176,7 +177,9 @@ function SupplierCard({ supplier }: { supplier: Supplier }) {
                         strokeWidth={1.9}
                     />
                     <span className="truncate">{supplier.address}</span>
-                    <span className="shrink-0">• {supplier.distance}</span>
+                    <span className="shrink-0">
+                        • {supplier.products_count} produk
+                    </span>
                 </p>
                 <Link
                     href={href}
@@ -190,7 +193,6 @@ function SupplierCard({ supplier }: { supplier: Supplier }) {
                     Lihat Produk
                 </Link>
             </div>
-
             <Link
                 href={href}
                 aria-label={`Buka ${supplier.name}`}
@@ -203,5 +205,40 @@ function SupplierCard({ supplier }: { supplier: Supplier }) {
                 />
             </Link>
         </article>
+    );
+}
+
+function Pagination({
+    previous,
+    next,
+}: {
+    previous: string | null;
+    next: string | null;
+}) {
+    if (!previous && !next) {
+        return null;
+    }
+
+    return (
+        <div className="mt-3 flex justify-end gap-2 pb-3">
+            {previous && (
+                <Link
+                    href={previous}
+                    preserveScroll
+                    className="flex size-8 items-center justify-center rounded-full bg-white text-[#f2a000]"
+                >
+                    <ChevronLeft className="size-4" />
+                </Link>
+            )}
+            {next && (
+                <Link
+                    href={next}
+                    preserveScroll
+                    className="flex size-8 items-center justify-center rounded-full bg-[#ffb500] text-white"
+                >
+                    <ChevronRight className="size-4" />
+                </Link>
+            )}
+        </div>
     );
 }

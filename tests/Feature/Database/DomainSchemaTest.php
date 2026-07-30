@@ -18,7 +18,7 @@ it('creates every domain table with the documented columns', function () {
         'business_order_items' => ['id', 'business_order_id', 'seller_product_id', 'buyer_product_id', 'product_name', 'quantity', 'price', 'subtotal', 'created_at', 'updated_at'],
         'stock_movements' => ['id', 'business_id', 'product_id', 'user_id', 'sale_id', 'business_order_id', 'movement_type', 'source', 'quantity', 'stock_before', 'stock_after', 'description', 'created_at'],
         'conversations' => ['id', 'business_one_id', 'business_two_id', 'last_message_at', 'created_at', 'updated_at', 'deleted_at'],
-        'messages' => ['id', 'conversation_id', 'sender_business_id', 'sender_user_id', 'message', 'read_at', 'created_at', 'updated_at', 'deleted_at'],
+        'messages' => ['id', 'conversation_id', 'sender_business_id', 'sender_user_id', 'message', 'media', 'media_type', 'read_at', 'created_at', 'updated_at', 'deleted_at'],
     ];
 
     foreach ($tables as $table => $columns) {

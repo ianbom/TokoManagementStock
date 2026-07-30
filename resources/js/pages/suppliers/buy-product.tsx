@@ -1,33 +1,105 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
     Bell,
     Boxes,
+    ChevronLeft,
+    ChevronRight,
+    Minus,
     Plus,
     ShoppingBasket,
-    SlidersHorizontal,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import {
     AppPageHeader,
     AppPageHeaderHeading,
     AppPageHeaderSearch,
 } from '@/components/app-page-header';
-import { checkout, index as supplierList } from '@/routes/suppliers';
+import { buy, checkout, index as supplierList } from '@/routes/suppliers';
+import {
+    destroy as destroyCart,
+    store as addCart,
+    update as updateCart,
+} from '@/routes/suppliers/cart';
 import heroImage from '../../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8974af5901339.png';
 import productReference from '../../../../Design/POS/stock-out.png';
-import {
-    formatRupiah,
-    getSelectedSupplier,
-    supplierOrderItemCount,
-    supplierOrderProducts,
-} from './supplier-order-data';
-import type { SupplierOrderProduct } from './supplier-order-data';
 
-const categories = ['Semua', 'Sembako', 'Minuman', 'Frozen', 'Rumah Tangga'];
+type Supplier = {
+    id: number;
+    name: string;
+    category: string | null;
+    address: string;
+};
+type Product = {
+    id: number;
+    name: string;
+    stock: number;
+    price: number;
+    image_url: string | null;
+};
+type CartItem = Product & { quantity: number; subtotal: number };
+type Cart = {
+    items: CartItem[];
+    item_count: number;
+    subtotal: number;
+    total: number;
+};
+type Paginated<T> = {
+    data: T[];
+    total: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+};
 
-export default function BuyProduct() {
-    const supplier = getSelectedSupplier(usePage().url);
+const currency = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+});
+const fallbackImages = [
+    ['left-[38px] top-[17px] h-[71px] w-[96px]', '-57px -280px'],
+    ['left-[69px] top-[11px] h-[81px] w-[27px]', '-269px -274px'],
+    ['left-[53px] top-[8px] h-[81px] w-[63px]', '-72px -433px'],
+    ['left-[50px] top-[8px] h-[74px] w-[71px]', '-69px -595px'],
+] as const;
+
+export default function BuyProduct({
+    supplier,
+    products,
+    cart,
+    filters,
+}: {
+    supplier: Supplier;
+    products: Paginated<Product>;
+    cart: Cart;
+    filters: { search: string };
+}) {
+    const [search, setSearch] = useState(filters.search);
+
+    useEffect(() => {
+        if (search === filters.search) {
+            return;
+        }
+
+        const timeout = window.setTimeout(() => {
+            router.get(
+                buy(supplier.id).url,
+                { search },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                    only: ['products', 'filters'],
+                },
+            );
+        }, 300);
+
+        return () => window.clearTimeout(timeout);
+    }, [filters.search, search, supplier.id]);
+
+    const quantityFor = (productId: number) =>
+        cart.items.find((item) => item.id === productId)?.quantity ?? 0;
 
     return (
         <>
@@ -60,10 +132,8 @@ export default function BuyProduct() {
                             className="size-5 fill-white text-white"
                             strokeWidth={1.7}
                         />
-                        <span className="absolute top-[7px] right-[7px] size-[7px] rounded-full bg-[#ed1717] ring-1 ring-[#68778a]" />
                     </button>
                 </div>
-
                 <AppPageHeaderHeading
                     title="Belanja Supplier"
                     description={supplier.name}
@@ -73,48 +143,27 @@ export default function BuyProduct() {
                 />
             </AppPageHeader>
 
-            <section className="relative z-10 mx-4 -mt-[20px] rounded-[18px] bg-white px-3 pt-3 pb-[13px] shadow-[0_6px_18px_rgba(253,185,0,0.07)]">
-                <div className="flex items-center gap-[10px]">
-                    <AppPageHeaderSearch
-                        readOnly
-                        aria-label="Cari produk supplier"
-                        placeholder="Cari produk grosir"
-                        wrapperClassName="flex h-[32px] min-w-0 flex-1 items-center rounded-[10px] bg-[#fbfbfb] px-3 text-[#555]"
-                        iconClassName="size-[17px] shrink-0 text-[#777]"
-                        inputClassName="min-w-0 flex-1 bg-transparent px-3 text-[12px] text-[#252525] outline-none placeholder:text-[#858585]"
-                    />
-                    <button
-                        type="button"
-                        aria-label="Filter produk supplier"
-                        className="flex size-[32px] shrink-0 items-center justify-center rounded-[9px] bg-[linear-gradient(145deg,#ffb500_0%,#ffc619_100%)] text-[#0e223e]"
-                    >
-                        <SlidersHorizontal
-                            aria-hidden="true"
-                            className="size-[17px]"
-                            strokeWidth={2}
-                        />
-                    </button>
-                </div>
-
-                <div className="mt-[12px] grid h-[23px] grid-cols-[49px_61px_62px_57px_91px] gap-[5px]">
-                    {categories.map((category, index) => (
-                        <button
-                            key={category}
-                            type="button"
-                            aria-pressed={index === 0}
-                            className={`rounded-full text-[8px] font-medium whitespace-nowrap ${index === 0 ? 'bg-[linear-gradient(145deg,#ffb500_0%,#ffc619_100%)] text-[#121212]' : 'border border-[#e0e0e0] bg-white text-[#353535]'}`}
-                        >
-                            {category}
-                        </button>
-                    ))}
-                </div>
+            <section className="relative z-10 mx-4 -mt-[20px] rounded-[18px] bg-white px-3 py-3 shadow-[0_6px_18px_rgba(253,185,0,0.07)]">
+                <AppPageHeaderSearch
+                    aria-label="Cari produk supplier"
+                    placeholder="Cari produk grosir"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    wrapperClassName="flex h-[32px] min-w-0 items-center rounded-[10px] bg-[#fbfbfb] px-3 text-[#555]"
+                    iconClassName="size-[17px] shrink-0 text-[#777]"
+                    inputClassName="min-w-0 flex-1 bg-transparent px-3 text-[12px] text-[#252525] outline-none placeholder:text-[#858585]"
+                />
             </section>
 
             <section className="mx-4 grid h-[53px] grid-cols-2 rounded-[13px] bg-white px-4 shadow-[0_5px_16px_rgba(14,34,62,0.04)]">
-                <OrderSummary icon={Boxes} value="36" label="Produk Grosir" />
+                <OrderSummary
+                    icon={Boxes}
+                    value={String(products.total)}
+                    label="Produk Grosir"
+                />
                 <OrderSummary
                     icon={ShoppingBasket}
-                    value="8"
+                    value={String(cart.item_count)}
                     label="Item Pesanan"
                     bordered
                 />
@@ -122,27 +171,48 @@ export default function BuyProduct() {
 
             <section
                 aria-label="Produk supplier"
-                className="mx-[19px] mt-[7px] -mb-4 grid grid-cols-2 gap-[7px]"
+                className="mx-[19px] mt-[7px] grid grid-cols-2 gap-[7px]"
             >
-                {supplierOrderProducts.map((product) => (
-                    <SupplierProductCard key={product.key} product={product} />
-                ))}
+                {products.data.length ? (
+                    products.data.map((product, index) => (
+                        <SupplierProductCard
+                            key={product.id}
+                            supplier={supplier}
+                            product={product}
+                            quantity={quantityFor(product.id)}
+                            fallback={
+                                fallbackImages[index % fallbackImages.length]
+                            }
+                        />
+                    ))
+                ) : (
+                    <p className="col-span-2 rounded-[11px] bg-white px-4 py-8 text-center text-[11px] text-[#858585]">
+                        Produk supplier tidak ditemukan.
+                    </p>
+                )}
             </section>
 
-            <Link
-                href={checkout({ query: { supplier: supplier.slug } }).url}
-                aria-label={`Buka keranjang, ${supplierOrderItemCount} item`}
-                className="fixed bottom-[63px] left-[calc(50%+151px)] z-40 flex size-[54px] -translate-x-1/2 items-center justify-center rounded-full bg-[linear-gradient(145deg,#ffb500_0%,#ffc619_100%)] text-[#0e223e] shadow-[0_7px_16px_rgba(253,185,0,0.28)]"
-            >
-                <ShoppingBasket
-                    aria-hidden="true"
-                    className="size-[25px] fill-[#0e223e]"
-                    strokeWidth={1.7}
-                />
-                <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-[#e9002b] text-[10px] font-bold text-white">
-                    {supplierOrderItemCount}
-                </span>
-            </Link>
+            <Pagination
+                previous={products.prev_page_url}
+                next={products.next_page_url}
+            />
+
+            {cart.item_count > 0 ? (
+                <Link
+                    href={checkout(supplier.id).url}
+                    aria-label={`Buka keranjang, ${cart.item_count} item`}
+                    className="fixed bottom-[63px] left-[calc(50%+151px)] z-40 flex size-[54px] -translate-x-1/2 items-center justify-center rounded-full bg-[linear-gradient(145deg,#ffb500_0%,#ffc619_100%)] text-[#0e223e] shadow-[0_7px_16px_rgba(253,185,0,0.28)]"
+                >
+                    <ShoppingBasket
+                        aria-hidden="true"
+                        className="size-[25px] fill-[#0e223e]"
+                        strokeWidth={1.7}
+                    />
+                    <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-[#e9002b] text-[10px] font-bold text-white">
+                        {cart.item_count}
+                    </span>
+                </Link>
+            ) : null}
         </>
     );
 }
@@ -181,43 +251,139 @@ function OrderSummary({
     );
 }
 
-function SupplierProductCard({ product }: { product: SupplierOrderProduct }) {
+function SupplierProductCard({
+    supplier,
+    product,
+    quantity,
+    fallback,
+}: {
+    supplier: Supplier;
+    product: Product;
+    quantity: number;
+    fallback: (typeof fallbackImages)[number];
+}) {
+    const changeQuantity = (nextQuantity: number) => {
+        if (nextQuantity < 1) {
+            router.delete(destroyCart([supplier.id, product.id]).url, {
+                preserveScroll: true,
+                only: ['cart'],
+            });
+
+            return;
+        }
+
+        router.patch(
+            updateCart([supplier.id, product.id]).url,
+            { quantity: nextQuantity },
+            { preserveScroll: true, only: ['cart'] },
+        );
+    };
+
+    const add = () => {
+        if (quantity === 0) {
+            router.post(
+                addCart(supplier.id).url,
+                { product_id: product.id, quantity: 1 },
+                { preserveScroll: true, only: ['cart'] },
+            );
+
+            return;
+        }
+
+        changeQuantity(quantity + 1);
+    };
+
     return (
         <article className="relative h-[155px] overflow-hidden rounded-[11px] bg-white px-[10px] shadow-[0_4px_12px_rgba(14,34,62,0.045)]">
-            <span
-                aria-hidden="true"
-                className={`absolute bg-no-repeat ${product.imageClass}`}
-                style={{
-                    backgroundImage: `url(${productReference})`,
-                    backgroundPosition: product.imagePosition,
-                    backgroundSize: '393px auto',
-                }}
-            />
+            {product.image_url ? (
+                <img
+                    src={product.image_url}
+                    alt=""
+                    className="absolute top-2 left-1/2 h-[82px] w-[105px] -translate-x-1/2 object-contain"
+                />
+            ) : (
+                <span
+                    aria-hidden="true"
+                    className={`absolute bg-no-repeat ${fallback[0]}`}
+                    style={{
+                        backgroundImage: `url(${productReference})`,
+                        backgroundPosition: fallback[1],
+                        backgroundSize: '393px auto',
+                    }}
+                />
+            )}
             <div className="absolute right-[10px] bottom-[7px] left-[10px]">
                 <h2 className="truncate text-[11px] leading-4 font-semibold">
                     {product.name}
                 </h2>
                 <p className="text-[12px] leading-4 font-medium text-[#f48700]">
-                    {formatRupiah(product.price)}
+                    {currency.format(product.price)}
                 </p>
                 <p className="truncate text-[8px] leading-3 text-[#5f5f5f]">
-                    {product.unit}
+                    Stok: {product.stock} pcs
                 </p>
-                <p className="text-[8px] leading-3 text-[#858585]">
-                    {product.stock}
-                </p>
+                <div className="mt-1 flex items-center justify-end gap-1">
+                    {quantity > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => changeQuantity(quantity - 1)}
+                            aria-label={`Kurangi ${product.name}`}
+                            className="flex size-[19px] items-center justify-center rounded-[5px] border border-[#ffb500] text-[#f29a00]"
+                        >
+                            <Minus className="size-3" />
+                        </button>
+                    )}
+                    {quantity > 0 && (
+                        <span className="min-w-5 text-center text-[10px] font-semibold">
+                            {quantity}
+                        </span>
+                    )}
+                    <button
+                        disabled={quantity >= product.stock}
+                        type="button"
+                        onClick={add}
+                        aria-label={`Tambah ${product.name}`}
+                        className="flex size-[19px] items-center justify-center rounded-[5px] bg-[#ffb500] text-white disabled:opacity-40"
+                    >
+                        <Plus className="size-3" />
+                    </button>
+                </div>
             </div>
-            <button
-                type="button"
-                aria-label={`Tambahkan ${product.name} ke pesanan`}
-                className="absolute right-[12px] bottom-[9px] flex size-[24px] items-center justify-center rounded-full bg-[linear-gradient(145deg,#ffb500_0%,#ffc619_100%)] text-white"
-            >
-                <Plus
-                    aria-hidden="true"
-                    className="size-[17px]"
-                    strokeWidth={2.4}
-                />
-            </button>
         </article>
+    );
+}
+
+function Pagination({
+    previous,
+    next,
+}: {
+    previous: string | null;
+    next: string | null;
+}) {
+    if (!previous && !next) {
+        return null;
+    }
+
+    return (
+        <div className="mx-[19px] mt-3 flex justify-end gap-2 pb-20">
+            {previous && (
+                <Link
+                    href={previous}
+                    preserveScroll
+                    className="flex size-8 items-center justify-center rounded-full bg-white text-[#f2a000]"
+                >
+                    <ChevronLeft className="size-4" />
+                </Link>
+            )}
+            {next && (
+                <Link
+                    href={next}
+                    preserveScroll
+                    className="flex size-8 items-center justify-center rounded-full bg-[#ffb500] text-white"
+                >
+                    <ChevronRight className="size-4" />
+                </Link>
+            )}
+        </div>
     );
 }

@@ -1,78 +1,89 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
     Box,
+    Camera,
+    ChevronLeft,
+    ChevronRight,
     CircleAlert,
     ClipboardList,
     Layers3,
     ListFilter,
+    LoaderCircle,
+    Save,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import {
     AppPageHeader,
     AppPageHeaderHeading,
     AppPageHeaderSearch,
 } from '@/components/app-page-header';
+import InputError from '@/components/input-error';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { update } from '@/routes/stocks';
 import stockReference from '../../../../Design/Stock/list-stock.png';
 
 type Product = {
+    id: number;
     name: string;
-    price: string;
-    stock: string;
-    imageClass: string;
-    imagePosition: string;
+    stock: number;
+    purchase_price: number;
+    selling_price: number;
+    image: string | null;
 };
 
-const products: Product[] = [
-    {
-        name: 'Kopi Kapal Api 200g',
-        price: 'Rp 12.000',
-        stock: 'Stock: 24 pcs',
-        imageClass: 'left-[52px] top-[6px] h-[76px] w-[63px]',
-        imagePosition: '-68px -251px',
-    },
-    {
-        name: 'Indomie Goreng',
-        price: 'Rp 2.500',
-        stock: 'Stock: 85 pcs',
-        imageClass: 'left-[46px] top-[10px] h-[65px] w-[84px]',
-        imagePosition: '-244px -255px',
-    },
-    {
-        name: 'Aqua 600ml',
-        price: 'Rp 3.000',
-        stock: 'Stock: 40 botol',
-        imageClass: 'left-[68px] top-[10px] h-[78px] w-[30px]',
-        imagePosition: '-84px -396px',
-    },
-    {
-        name: 'Beras Premium 5kg',
-        price: 'Rp 62.000',
-        stock: 'Stock: 12 karung',
-        imageClass: 'left-[54px] top-[11px] h-[77px] w-[57px]',
-        imagePosition: '-252px -397px',
-    },
-    {
-        name: 'Minyak Goreng 1L',
-        price: 'Rp 16.000',
-        stock: 'Stock: 18 pcs',
-        imageClass: 'left-[57px] top-[9px] h-[76px] w-[48px]',
-        imagePosition: '-73px -536px',
-    },
-    {
-        name: 'Teh Pucuk 350ml',
-        price: 'Rp 3.500',
-        stock: 'Stock: 30 botol',
-        imageClass: 'left-[69px] top-[10px] h-[69px] w-[37px]',
-        imagePosition: '-267px -537px',
-    },
-];
+type Summary = {
+    total_products: number;
+    total_stock: number;
+    low_stock: number;
+};
+type Paginated<T> = {
+    data: T[];
+    prev_page_url: string | null;
+    next_page_url: string | null;
+};
+type EditProductForm = {
+    _method: 'patch';
+    name: string;
+    stock: number;
+    purchase_price: number;
+    selling_price: number;
+    image: File | null;
+};
 
 const categories = ['Semua', 'Makanan', 'Minuman', 'Kebutuhan Harian'];
+const fallbackImages = [
+    ['left-[52px] top-[6px] h-[76px] w-[63px]', '-68px -251px'],
+    ['left-[46px] top-[10px] h-[65px] w-[84px]', '-244px -255px'],
+    ['left-[68px] top-[10px] h-[78px] w-[30px]', '-84px -396px'],
+    ['left-[54px] top-[11px] h-[77px] w-[57px]', '-252px -397px'],
+    ['left-[57px] top-[9px] h-[76px] w-[48px]', '-73px -536px'],
+    ['left-[69px] top-[10px] h-[69px] w-[37px]', '-267px -537px'],
+] as const;
 
-export default function ListStock() {
+const currency = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+});
+
+export default function ListStock({
+    products,
+    summary,
+}: {
+    products: Paginated<Product>;
+    summary: Summary;
+}) {
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
     return (
         <>
             <Head title="Persediaan" />
-
             <div className="px-4 pt-[10px]">
                 <AppPageHeader>
                     <AppPageHeaderHeading
@@ -120,25 +131,25 @@ export default function ListStock() {
 
                 <section
                     aria-label="Ringkasan persediaan"
-                    className="mt-[7px] grid h-[73px] w-[355px] grid-cols-3 rounded-[10px] bg-white shadow-[0_5px_16px_rgba(14,34,62,0.05)]"
+                    className="mt-[7px] grid h-[73px] w-full grid-cols-3 rounded-[10px] bg-white shadow-[0_5px_16px_rgba(14,34,62,0.05)]"
                 >
                     <StockSummary
                         icon={Box}
                         label="Total Produk"
-                        value="6"
+                        value={String(summary.total_products)}
                         color="text-[#ff9800]"
                     />
                     <StockSummary
                         icon={Layers3}
                         label="Total Stock"
-                        value="209"
+                        value={String(summary.total_stock)}
                         color="text-[#09a992]"
                         bordered
                     />
                     <StockSummary
                         icon={CircleAlert}
                         label="Stok Menipis"
-                        value="1"
+                        value={String(summary.low_stock)}
                         color="text-[#ef3526]"
                         bordered
                     />
@@ -147,16 +158,41 @@ export default function ListStock() {
                 <h2 className="mt-[11px] text-[15px] leading-5 font-bold tracking-[-0.2px]">
                     Daftar Produk
                 </h2>
-
                 <section
                     aria-label="Daftar produk"
-                    className="mt-[7px] grid w-[356px] grid-cols-2 gap-x-[8px] gap-y-[10px]"
+                    className="mt-[7px] grid w-full grid-cols-2 gap-x-[8px] gap-y-[10px]"
                 >
-                    {products.map((product) => (
-                        <ProductCard key={product.name} product={product} />
-                    ))}
+                    {products.data.length ? (
+                        products.data.map((product, index) => (
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                onClick={() => setEditingProduct(product)}
+                                fallback={
+                                    fallbackImages[
+                                        index % fallbackImages.length
+                                    ]
+                                }
+                            />
+                        ))
+                    ) : (
+                        <p className="col-span-2 rounded-[10px] bg-white px-4 py-8 text-center text-[12px] text-[#858585]">
+                            Belum ada produk dalam persediaan.
+                        </p>
+                    )}
                 </section>
+                <Pagination
+                    previous={products.prev_page_url}
+                    next={products.next_page_url}
+                />
             </div>
+            {editingProduct && (
+                <EditProductDialog
+                    key={editingProduct.id}
+                    product={editingProduct}
+                    onClose={() => setEditingProduct(null)}
+                />
+            )}
         </>
     );
 }
@@ -193,34 +229,52 @@ function StockSummary({
     );
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({
+    product,
+    fallback,
+    onClick,
+}: {
+    product: Product;
+    fallback: (typeof fallbackImages)[number];
+    onClick: () => void;
+}) {
     return (
-        <article className="relative h-[132px] overflow-hidden rounded-[10px] bg-white px-[10px] shadow-[0_4px_12px_rgba(14,34,62,0.045)]">
-            <span
-                aria-hidden="true"
-                className={`absolute bg-no-repeat ${product.imageClass}`}
-                style={{
-                    backgroundImage: `url(${stockReference})`,
-                    backgroundPosition: product.imagePosition,
-                    backgroundSize: '393px auto',
-                }}
-            />
-
+        <button
+            type="button"
+            onClick={onClick}
+            aria-label={`Edit ${product.name}`}
+            className="relative h-[132px] overflow-hidden rounded-[10px] bg-white px-[10px] text-left shadow-[0_4px_12px_rgba(14,34,62,0.045)] transition active:scale-[0.98]"
+        >
+            {product.image ? (
+                <img
+                    src={imageUrl(product.image)}
+                    alt=""
+                    className="absolute top-2 left-1/2 h-[78px] w-[92px] -translate-x-1/2 object-contain"
+                />
+            ) : (
+                <span
+                    aria-hidden="true"
+                    className={`absolute bg-no-repeat ${fallback[0]}`}
+                    style={{
+                        backgroundImage: `url(${stockReference})`,
+                        backgroundPosition: fallback[1],
+                        backgroundSize: '393px auto',
+                    }}
+                />
+            )}
             <div className="absolute right-[10px] bottom-[2px] left-[10px]">
                 <h3 className="truncate text-[10px] leading-4 font-semibold">
                     {product.name}
                 </h3>
                 <p className="text-[11px] leading-4 font-medium text-[#ff9800]">
-                    {product.price}
+                    {currency.format(product.selling_price)}
                 </p>
                 <p className="text-[9px] leading-4 text-[#777]">
-                    {product.stock}
+                    Stock: {product.stock} pcs
                 </p>
             </div>
-
-            <button
-                type="button"
-                aria-label={`Lihat detail ${product.name}`}
+            <span
+                aria-hidden="true"
                 className="absolute right-[11px] bottom-[5px] flex size-[23px] items-center justify-center rounded-full bg-[#08aa92] text-white shadow-[0_3px_7px_rgba(0,159,128,0.22)]"
             >
                 <ClipboardList
@@ -228,7 +282,229 @@ function ProductCard({ product }: { product: Product }) {
                     className="size-[14px]"
                     strokeWidth={2}
                 />
-            </button>
-        </article>
+            </span>
+        </button>
+    );
+}
+
+function EditProductDialog({
+    product,
+    onClose,
+}: {
+    product: Product;
+    onClose: () => void;
+}) {
+    const form = useForm<EditProductForm>({
+        _method: 'patch',
+        name: product.name,
+        stock: product.stock,
+        purchase_price: product.purchase_price,
+        selling_price: product.selling_price,
+        image: null,
+    });
+    const [preview, setPreview] = useState<string | null>(
+        product.image ? imageUrl(product.image) : null,
+    );
+
+    useEffect(
+        () => () => {
+            if (preview?.startsWith('blob:')) {
+                URL.revokeObjectURL(preview);
+            }
+        },
+        [preview],
+    );
+
+    const submit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        form.post(update(product.id).url, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: onClose,
+        });
+    };
+
+    return (
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="max-h-[88dvh] w-[calc(100%-28px)] max-w-[365px] overflow-y-auto rounded-[22px] border-0 bg-[#fff9e8] p-5 text-[#252525]">
+                <DialogHeader className="text-left">
+                    <DialogTitle className="text-[18px] font-bold">
+                        Edit Produk
+                    </DialogTitle>
+                    <DialogDescription className="text-[11px] text-[#858585]">
+                        Perbarui informasi dan jumlah stok produk.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={submit} className="space-y-3">
+                    <label className="relative flex h-[112px] cursor-pointer items-center justify-center overflow-hidden rounded-[16px] border border-dashed border-[#f1b229] bg-white">
+                        {preview ? (
+                            <img
+                                src={preview}
+                                alt="Preview produk"
+                                className="size-full object-contain p-3"
+                            />
+                        ) : (
+                            <span className="flex flex-col items-center gap-1 text-[10px] text-[#858585]">
+                                <Camera className="size-6 text-[#e9a400]" />
+                                Pilih gambar produk
+                            </span>
+                        )}
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png"
+                            className="sr-only"
+                            onChange={(event) => {
+                                const file = event.target.files?.[0] ?? null;
+                                form.setData('image', file);
+
+                                if (file) {
+                                    setPreview(URL.createObjectURL(file));
+                                }
+                            }}
+                        />
+                    </label>
+                    <InputError
+                        message={form.errors.image}
+                        className="text-[10px]"
+                    />
+
+                    <EditField
+                        label="Nama Produk"
+                        value={form.data.name}
+                        onChange={(value) => form.setData('name', value)}
+                        error={form.errors.name}
+                    />
+                    <EditField
+                        label="Jumlah Stok"
+                        type="number"
+                        min="0"
+                        value={String(form.data.stock)}
+                        onChange={(value) =>
+                            form.setData('stock', Number(value))
+                        }
+                        error={form.errors.stock}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                        <EditField
+                            label="Harga Beli"
+                            type="number"
+                            min="0"
+                            value={String(form.data.purchase_price)}
+                            onChange={(value) =>
+                                form.setData('purchase_price', Number(value))
+                            }
+                            error={form.errors.purchase_price}
+                        />
+                        <EditField
+                            label="Harga Jual"
+                            type="number"
+                            min="0"
+                            value={String(form.data.selling_price)}
+                            onChange={(value) =>
+                                form.setData('selling_price', Number(value))
+                            }
+                            error={form.errors.selling_price}
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="h-10 rounded-[10px] border border-[#dedede] bg-white px-4 text-[11px] font-semibold"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={form.processing}
+                            className="flex h-10 items-center gap-2 rounded-[10px] bg-[#ffb500] px-4 text-[11px] font-bold text-white disabled:opacity-60"
+                        >
+                            {form.processing ? (
+                                <LoaderCircle className="size-4 animate-spin" />
+                            ) : (
+                                <Save className="size-4" />
+                            )}
+                            Simpan
+                        </button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function EditField({
+    label,
+    value,
+    onChange,
+    error,
+    type = 'text',
+    min,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    error?: string;
+    type?: 'text' | 'number';
+    min?: string;
+}) {
+    return (
+        <label className="block text-[10px] font-semibold text-[#4d4d4d]">
+            {label}
+            <input
+                type={type}
+                min={min}
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+                className="mt-1 h-10 w-full rounded-[10px] border border-[#e2e2e2] bg-white px-3 text-[12px] font-medium outline-none focus:border-[#f2ad00]"
+            />
+            <InputError message={error} className="mt-1 text-[10px]" />
+        </label>
+    );
+}
+
+function imageUrl(image: string) {
+    return image.startsWith('http') ||
+        image.startsWith('/') ||
+        image.startsWith('data:')
+        ? image
+        : `/storage/${image}`;
+}
+
+function Pagination({
+    previous,
+    next,
+}: {
+    previous: string | null;
+    next: string | null;
+}) {
+    if (!previous && !next) {
+        return null;
+    }
+
+    return (
+        <div className="mt-3 flex justify-end gap-2 pb-3">
+            {previous && (
+                <Link
+                    href={previous}
+                    preserveScroll
+                    className="flex size-8 items-center justify-center rounded-full bg-white text-[#f2a000]"
+                >
+                    <ChevronLeft className="size-4" />
+                </Link>
+            )}
+            {next && (
+                <Link
+                    href={next}
+                    preserveScroll
+                    className="flex size-8 items-center justify-center rounded-full bg-[#ffb500] text-white"
+                >
+                    <ChevronRight className="size-4" />
+                </Link>
+            )}
+        </div>
     );
 }

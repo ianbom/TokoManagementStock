@@ -297,7 +297,10 @@ Table messages {
   sender_business_id bigint [not null]
   sender_user_id bigint [not null]
 
-  message text [not null]
+  message text
+
+  media text
+  media_type enum('image', 'video')
 
   read_at timestamp
 

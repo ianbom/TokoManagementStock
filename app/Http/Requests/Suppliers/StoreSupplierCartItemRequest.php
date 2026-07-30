@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Http\Requests\Suppliers;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreSupplierCartItemRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->business_id !== null;
+    }
+
+    /** @return array<string, mixed> */
+    public function rules(): array
+    {
+        return [
+            'product_id' => ['required', 'integer'],
+            'quantity' => ['required', 'integer', 'min:1'],
+        ];
+    }
+}

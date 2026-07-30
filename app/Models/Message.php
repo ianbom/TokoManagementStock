@@ -6,8 +6,20 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
-#[Fillable(['conversation_id', 'sender_business_id', 'sender_user_id', 'message', 'read_at'])]
+/**
+ * @property int $id
+ * @property int $conversation_id
+ * @property int $sender_business_id
+ * @property int $sender_user_id
+ * @property string|null $message
+ * @property string|null $media
+ * @property string|null $media_type
+ * @property Carbon|null $read_at
+ * @property Carbon|null $created_at
+ */
+#[Fillable(['conversation_id', 'sender_business_id', 'sender_user_id', 'message', 'media', 'media_type', 'read_at'])]
 class Message extends Model
 {
     use SoftDeletes;
