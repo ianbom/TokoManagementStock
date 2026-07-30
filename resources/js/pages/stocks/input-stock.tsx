@@ -367,60 +367,6 @@ export default function InputStock() {
                         />
                     </div>
 
-                    <div className="mt-[8px] flex h-[58px] items-center rounded-[9px] border border-[#ffdc78] bg-[#fffdf5] px-[8px]">
-                        <div className="flex h-[48px] w-[58px] shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-white">
-                            {preview ? (
-                                <img
-                                    src={preview}
-                                    alt="Produk terpilih"
-                                    className="h-full w-full object-contain"
-                                />
-                            ) : (
-                                <div className="origin-center scale-[0.72]">
-                                    <ProductThumbnail
-                                        product={{
-                                            name: form.data.name || 'Produk',
-                                            image_url: null,
-                                        }}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                        <div className="ml-[10px] min-w-0 flex-1">
-                            <p className="truncate text-[11px] leading-[14px] font-bold text-[#0e223e]">
-                                {form.data.name || 'Nama Produk'}
-                            </p>
-                            <div className="mt-1 grid grid-cols-[1fr_auto] gap-2 text-[8px] leading-[11px]">
-                                <div>
-                                    <p>
-                                        Harga beli:{' '}
-                                        <strong>
-                                            {currencyValue(
-                                                form.data.purchase_price,
-                                            )}
-                                        </strong>
-                                    </p>
-                                    <p>
-                                        Harga jual:{' '}
-                                        <strong>
-                                            {currencyValue(
-                                                form.data.selling_price,
-                                            )}
-                                        </strong>
-                                    </p>
-                                </div>
-                                <p className="self-center border-l border-[#ffe2a0] pl-3">
-                                    Jumlah masuk:{' '}
-                                    <strong>{form.data.quantity} pcs</strong>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-[7px] flex h-[25px] items-center rounded-[8px] border border-[#ffe099] bg-[#fff8df] px-[8px] text-[8px] text-[#4d4d4d]">
-                        <Info className="mr-2 size-4 shrink-0 fill-[#f6a900] text-white" />
-                        Pastikan data barang sudah sesuai sebelum disimpan
-                    </div>
 
                     <div className="mt-[7px] grid grid-cols-2 gap-[7px]">
                         <button

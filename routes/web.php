@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\BusinessController as AdminBusinessController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatMessageController;
 use App\Http\Controllers\DashboardController;
@@ -13,12 +18,20 @@ use App\Http\Controllers\SupplierCheckoutController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierProductController;
 use App\Http\Controllers\TransactionHistoryController;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->group(function () {
+        Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
+        Route::get('businesses', AdminBusinessController::class)->name('businesses');
+        Route::get('users', AdminUserController::class)->name('users');
+        Route::get('products', AdminProductController::class)->name('products');
+        Route::get('transactions', AdminTransactionController::class)->name('transactions');
+    });
     Route::get('transactions/history', [TransactionHistoryController::class, 'index'])
         ->name('transactions.history');
     Route::get('transactions/history/{transaction}', [TransactionHistoryController::class, 'show'])

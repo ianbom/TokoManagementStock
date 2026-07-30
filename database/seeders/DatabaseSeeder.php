@@ -54,5 +54,12 @@ class DatabaseSeeder extends Seeder
                 $product,
             );
         }
+
+        User::create([
+            'name' => 'Admin',
+            'email' => 'admin@gmail.com',
+            'password' => bcrypt('admin123'),
+            'role' => 'admin'
+        ]);
     }
 }

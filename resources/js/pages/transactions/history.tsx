@@ -34,6 +34,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { dashboard } from '@/routes';
 import heroImage from '../../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8974af5901339.png';
 
@@ -132,8 +141,6 @@ const transactionStyles: Record<
 
 const filterButton =
     'h-[25px] rounded-[7px] border border-[#dddddd] bg-white px-2 text-[9px] font-medium text-[#252525] shadow-[0_1px_2px_rgba(14,34,62,0.02)]';
-const activeFilterButton =
-    'h-[25px] rounded-[7px] bg-[linear-gradient(135deg,#ffbd00_0%,#ffc91d_100%)] px-2 text-[9px] font-medium text-[#121212] shadow-[0_4px_8px_rgba(253,185,0,0.18)]';
 
 export default function TransactionHistory({
     transactions,
@@ -192,6 +199,8 @@ export default function TransactionHistory({
         filters.type !== 'all' ||
         filters.period !== 'today' ||
         filters.sort !== 'latest';
+    const activeFilterCount =
+        Number(filters.type !== 'all') + Number(filters.period !== 'today');
 
     return (
         <>
@@ -249,66 +258,96 @@ export default function TransactionHistory({
 
             <section className="min-h-[455px] bg-[#fff9e8] pt-[9px] pb-4">
                 <div className="rounded-[18px] bg-white px-3.5 py-2.5 shadow-[0_6px_18px_rgba(253,185,0,0.08)]">
-                    <div className="grid grid-cols-[58px_88px_88px_1fr] gap-2">
-                        <TypeFilter
-                            label="Semua"
-                            value="all"
-                            filters={filters}
-                        />
-                        <TypeFilter
-                            label="Stock Masuk"
-                            value="in"
-                            filters={filters}
-                        />
-                        <TypeFilter
-                            label="Stock Keluar"
-                            value="out"
-                            filters={filters}
-                        />
-                        <TypeFilter
-                            label="Pembelian Supplier"
-                            value="supplier"
-                            filters={filters}
-                        />
-                    </div>
-                    <div className="mt-[7px] grid grid-cols-[60px_76px_68px_1fr] gap-2">
-                        <PeriodFilter
-                            label="Hari Ini"
-                            value="today"
-                            filters={filters}
-                        />
-                        <PeriodFilter
-                            label="Minggu Ini"
-                            value="week"
-                            filters={filters}
-                        />
-                        <PeriodFilter
-                            label="Bulan Ini"
-                            value="month"
-                            filters={filters}
-                        />
-                        <label
-                            className={`${filterButton} relative ml-auto flex w-[101px] items-center justify-center gap-1.5`}
+                    <div className="flex items-center justify-between gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    type="button"
+                                    aria-label="Pilih filter transaksi"
+                                    className={`${filterButton} flex min-w-[86px] items-center justify-center gap-1.5 ${activeFilterCount > 0 ? 'border-[#ffbd00] bg-[#fff7dc] text-[#d88900]' : ''}`}
+                                >
+                                    <SlidersHorizontal
+                                        aria-hidden="true"
+                                        className="size-[14px]"
+                                    />
+                                    Filter
+                                    {activeFilterCount > 0 && (
+                                        <span className="flex size-4 items-center justify-center rounded-full bg-[#ffbd00] text-[8px] font-bold text-[#121212]">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="start"
+                                className="w-56 rounded-[14px]"
+                            >
+                                <DropdownMenuLabel>
+                                    Tipe Transaksi
+                                </DropdownMenuLabel>
+                                <DropdownMenuRadioGroup
+                                    value={filters.type}
+                                    onValueChange={(value) =>
+                                        updateFilters(filters, {
+                                            type: value as TransactionFilters['type'],
+                                        })
+                                    }
+                                >
+                                    <DropdownMenuRadioItem value="all">
+                                        Semua Transaksi
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="in">
+                                        Stock Masuk
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="out">
+                                        Stock Keluar
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="supplier">
+                                        Pembelian Supplier
+                                    </DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuLabel>Periode</DropdownMenuLabel>
+                                <DropdownMenuRadioGroup
+                                    value={filters.period}
+                                    onValueChange={(value) =>
+                                        updateFilters(filters, {
+                                            period: value as TransactionFilters['period'],
+                                        })
+                                    }
+                                >
+                                    <DropdownMenuRadioItem value="today">
+                                        Hari Ini
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="week">
+                                        Minggu Ini
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="month">
+                                        Bulan Ini
+                                    </DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <button
+                            type="button"
+                            aria-label={`Urutkan transaksi: ${filters.sort === 'latest' ? 'terbaru' : 'terlama'}`}
+                            onClick={() =>
+                                updateFilters(filters, {
+                                    sort:
+                                        filters.sort === 'latest'
+                                            ? 'oldest'
+                                            : 'latest',
+                                })
+                            }
+                            className={`${filterButton} flex min-w-[101px] items-center justify-center gap-1.5`}
                         >
                             <ArrowUpDown
                                 aria-hidden="true"
                                 className="size-[14px]"
                             />
-                            <select
-                                aria-label="Urutkan transaksi"
-                                value={filters.sort}
-                                onChange={(event) =>
-                                    updateFilters(filters, {
-                                        sort: event.target
-                                            .value as TransactionFilters['sort'],
-                                    })
-                                }
-                                className="appearance-none bg-transparent pr-2 outline-none"
-                            >
-                                <option value="latest">Terbaru</option>
-                                <option value="oldest">Terlama</option>
-                            </select>
-                        </label>
+                            {filters.sort === 'latest' ? 'Terbaru' : 'Terlama'}
+                        </button>
                     </div>
                 </div>
 
@@ -445,52 +484,6 @@ function updateFilters(
             preserveState: true,
             replace: true,
         },
-    );
-}
-
-function TypeFilter({
-    label,
-    value,
-    filters,
-}: {
-    label: string;
-    value: TransactionFilters['type'];
-    filters: TransactionFilters;
-}) {
-    const active = filters.type === value;
-
-    return (
-        <button
-            type="button"
-            aria-pressed={active}
-            onClick={() => updateFilters(filters, { type: value })}
-            className={active ? activeFilterButton : filterButton}
-        >
-            {label}
-        </button>
-    );
-}
-
-function PeriodFilter({
-    label,
-    value,
-    filters,
-}: {
-    label: string;
-    value: TransactionFilters['period'];
-    filters: TransactionFilters;
-}) {
-    const active = filters.period === value;
-
-    return (
-        <button
-            type="button"
-            aria-pressed={active}
-            onClick={() => updateFilters(filters, { period: value })}
-            className={active ? activeFilterButton : filterButton}
-        >
-            {label}
-        </button>
     );
 }
 
