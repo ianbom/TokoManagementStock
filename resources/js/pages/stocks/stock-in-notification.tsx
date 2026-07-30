@@ -1,10 +1,11 @@
-import { Head, router, usePage } from '@inertiajs/react';
-import { dashboard } from '@/routes';
-import {
-    ProductThumbnail,
-    quantityFromUrl,
-    stockProducts,
-} from './stock-in-data';
+import { Head, router } from '@inertiajs/react';
+import { finish } from '@/actions/App/Http/Controllers/StockInController';
+import { formatRupiah, ProductThumbnail } from './stock-in-data';
+import type { StockReceiptProduct } from './stock-in-data';
+
+type Props = {
+    products: StockReceiptProduct[];
+};
 
 function SuccessStoreIcon() {
     return (
@@ -35,9 +36,7 @@ function SuccessStoreIcon() {
     );
 }
 
-export default function StockInNotification() {
-    const { url } = usePage();
-
+export default function StockInNotification({ products }: Props) {
     return (
         <>
             <Head title="Barang Berhasil Ditambahkan" />
@@ -60,41 +59,42 @@ export default function StockInNotification() {
                     className="mt-[38px] space-y-[10px]"
                     aria-label="Stok produk"
                 >
-                    {stockProducts.map((product) => {
-                        const quantity = quantityFromUrl(url, product);
+                    {products.map((product) => (
+                        <article
+                            key={product.id}
+                            className="flex min-h-[124px] items-center rounded-[18px] bg-white p-4"
+                        >
+                            <ProductThumbnail product={product} />
 
-                        return (
-                            <article
-                                key={product.key}
-                                className="flex h-[110px] items-center rounded-[18px] bg-white p-4"
-                            >
-                                <ProductThumbnail product={product} />
+                            <div className="ml-4 min-w-0 flex-1">
+                                <h2 className="truncate text-[16px] leading-5 font-semibold">
+                                    {product.name}
+                                </h2>
+                                <p className="mt-[6px] text-[12px] leading-4 text-[#858585]">
+                                    +{product.quantity_added} pcs · Stok
+                                    tersedia
+                                </p>
+                                <p className="mt-1 text-[10px] leading-4 text-[#858585]">
+                                    Beli {formatRupiah(product.purchase_price)}{' '}
+                                    · Jual {formatRupiah(product.selling_price)}
+                                </p>
+                            </div>
 
-                                <div className="ml-4 min-w-0 flex-1">
-                                    <h2 className="truncate text-[16px] leading-5 font-semibold">
-                                        {product.name}
-                                    </h2>
-                                    <p className="mt-[6px] text-[12px] leading-4 text-[#858585]">
-                                        Stok Tersedia
-                                    </p>
-                                </div>
-
-                                <div className="ml-3 w-12 shrink-0 text-right">
-                                    <p className="text-[19px] leading-6 font-medium text-[#ff9f00]">
-                                        {product.initialStock + quantity}
-                                    </p>
-                                    <p className="text-[12px] leading-4 text-[#858585]">
-                                        Pcs
-                                    </p>
-                                </div>
-                            </article>
-                        );
-                    })}
+                            <div className="ml-3 w-12 shrink-0 text-right">
+                                <p className="text-[19px] leading-6 font-medium text-[#ff9f00]">
+                                    {product.stock_after}
+                                </p>
+                                <p className="text-[12px] leading-4 text-[#858585]">
+                                    Pcs
+                                </p>
+                            </div>
+                        </article>
+                    ))}
                 </section>
 
                 <button
                     type="button"
-                    onClick={() => router.visit(dashboard().url)}
+                    onClick={() => router.post(finish().url)}
                     className="mt-10 h-[61px] w-full rounded-[12px] bg-[linear-gradient(90deg,#ffa600_0%,#ffc900_100%)] text-[17px] font-medium text-[#121212] shadow-[0_8px_16px_rgba(253,185,0,0.12)] transition active:scale-[0.99]"
                     data-test="finish-stock-in"
                 >

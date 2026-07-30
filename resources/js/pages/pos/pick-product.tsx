@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
     Bell,
@@ -8,70 +8,100 @@ import {
     SlidersHorizontal,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import {
     AppPageHeader,
     AppPageHeaderHeading,
     AppPageHeaderSearch,
 } from '@/components/app-page-header';
 import { dashboard } from '@/routes';
-import { checkout } from '@/routes/pos';
+import { checkout, index as pos } from '@/routes/pos';
+import { store as addCartItem } from '@/routes/pos/cart';
 import heroImage from '../../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8974af5901339.png';
 import posReference from '../../../../Design/POS/stock-out.png';
 
 type Product = {
+    id: number;
     name: string;
-    price: string;
-    stock: string;
-    imageClass: string;
-    imagePosition: string;
+    price: number;
+    stock: number;
+    image_url: string | null;
 };
 
-const products: Product[] = [
-    {
-        name: 'Indomie Goreng',
-        price: 'Rp 3.500',
-        stock: 'Stok: 120 pcs',
+type StockFilter = 'all' | 'available' | 'low' | 'out';
+
+type PageProps = {
+    products: Product[];
+    filters: { search: string; stock: StockFilter };
+    available_product_count: number;
+    cart: { item_count: number };
+};
+
+const artwork: Record<string, { imageClass: string; imagePosition: string }> = {
+    'Indomie Goreng': {
         imageClass: 'left-[38px] top-[17px] h-[71px] w-[96px]',
         imagePosition: '-57px -280px',
     },
-    {
-        name: 'Aqua 600 ml',
-        price: 'Rp 4.000',
-        stock: 'Stok: 40 botol',
+    'Aqua 600 ml': {
         imageClass: 'left-[69px] top-[11px] h-[81px] w-[27px]',
         imagePosition: '-269px -274px',
     },
-    {
-        name: 'Minyak Goreng 1L',
-        price: 'Rp 18.000',
-        stock: 'Stok: 18 pcs',
+    'Minyak Goreng 1L': {
         imageClass: 'left-[53px] top-[8px] h-[81px] w-[63px]',
         imagePosition: '-72px -433px',
     },
-    {
-        name: 'Beras Ramos 5kg',
-        price: 'Rp 72.000',
-        stock: 'Stok: 12 karung',
+    'Beras Ramos 5kg': {
         imageClass: 'left-[47px] top-[8px] h-[81px] w-[72px]',
         imagePosition: '-247px -433px',
     },
-    {
-        name: 'Gula Pasir 1kg',
-        price: 'Rp 16.000',
-        stock: 'Stok: 24 pcs',
+    'Gula Pasir 1kg': {
         imageClass: 'left-[50px] top-[8px] h-[74px] w-[71px]',
         imagePosition: '-69px -595px',
     },
-    {
-        name: 'Teh Pucuk 350ml',
-        price: 'Rp 3.500',
-        stock: 'Stok: 30 botol',
+    'Teh Pucuk 350ml': {
         imageClass: 'left-[72px] top-0 h-[85px] w-[24px]',
         imagePosition: '-272px -587px',
     },
-];
+};
 
-export default function PickProduct() {
+const filterOrder: StockFilter[] = ['all', 'available', 'low', 'out'];
+
+export default function PickProduct({
+    products,
+    filters,
+    available_product_count,
+    cart,
+}: PageProps) {
+    const [search, setSearch] = useState(filters.search);
+
+    useEffect(() => {
+        if (search === filters.search) {
+            return;
+        }
+
+        const timeout = window.setTimeout(() => {
+            router.get(
+                pos().url,
+                { search, stock: filters.stock },
+                { preserveState: true, preserveScroll: true, replace: true },
+            );
+        }, 300);
+
+        return () => window.clearTimeout(timeout);
+    }, [filters.search, filters.stock, search]);
+
+    const cycleFilter = () => {
+        const next =
+            filterOrder[
+                (filterOrder.indexOf(filters.stock) + 1) % filterOrder.length
+            ];
+        router.get(
+            pos().url,
+            { search, stock: next },
+            { preserveState: true, preserveScroll: true, replace: true },
+        );
+    };
+
     return (
         <>
             <Head title="POS Kasir" />
@@ -115,7 +145,8 @@ export default function PickProduct() {
                 />
 
                 <AppPageHeaderSearch
-                    readOnly
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
                     aria-label="Cari produk"
                     placeholder="Cari produk"
                     wrapperClassName="relative mt-[12px] flex h-[43px] items-center rounded-[16px] bg-white px-4 text-[#333] shadow-[0_3px_12px_rgba(2,20,43,0.05)]"
@@ -124,7 +155,8 @@ export default function PickProduct() {
                     trailing={
                         <button
                             type="button"
-                            aria-label="Filter produk"
+                            onClick={cycleFilter}
+                            aria-label={`Filter stok: ${filters.stock}`}
                             className="flex size-8 items-center justify-center"
                         >
                             <SlidersHorizontal
@@ -143,13 +175,13 @@ export default function PickProduct() {
             >
                 <PosSummary
                     icon={Box}
-                    value="24"
+                    value={available_product_count.toString()}
                     label="Produk Tersedia"
                     iconClass="bg-[#fff0cd] text-[#ff9300]"
                 />
                 <PosSummary
                     icon={ShoppingCart}
-                    value="3"
+                    value={cart.item_count.toString()}
                     label="Item di Keranjang"
                     iconClass="bg-[#fff0cd] text-[#ff9300]"
                     bordered
@@ -161,13 +193,18 @@ export default function PickProduct() {
                 className="mx-[19px] mt-[7px] -mb-4 grid grid-cols-2 gap-[7px]"
             >
                 {products.map((product) => (
-                    <ProductCard key={product.name} product={product} />
+                    <ProductCard key={product.id} product={product} />
                 ))}
+                {products.length === 0 ? (
+                    <p className="col-span-2 py-10 text-center text-[11px] text-[#666]">
+                        Produk tidak ditemukan.
+                    </p>
+                ) : null}
             </section>
 
             <Link
                 href={checkout().url}
-                aria-label="Buka keranjang, 3 item"
+                aria-label={`Buka keranjang, ${cart.item_count} item`}
                 className="fixed bottom-[63px] left-[calc(50%+151px)] z-40 flex size-[54px] -translate-x-1/2 items-center justify-center rounded-full bg-[linear-gradient(145deg,#ffb500_0%,#ffc619_100%)] text-[#0e223e] shadow-[0_7px_16px_rgba(253,185,0,0.28)]"
             >
                 <ShoppingCart
@@ -176,7 +213,7 @@ export default function PickProduct() {
                     strokeWidth={1.7}
                 />
                 <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-[#e9002b] text-[10px] font-bold text-white">
-                    3
+                    {cart.item_count}
                 </span>
             </Link>
         </>
@@ -222,34 +259,59 @@ function PosSummary({
 }
 
 function ProductCard({ product }: { product: Product }) {
+    const sprite = artwork[product.name];
+
     return (
         <article className="relative h-[155px] overflow-hidden rounded-[11px] bg-white px-[10px] shadow-[0_4px_12px_rgba(14,34,62,0.045)]">
-            <span
-                aria-hidden="true"
-                className={`absolute bg-no-repeat ${product.imageClass}`}
-                style={{
-                    backgroundImage: `url(${posReference})`,
-                    backgroundPosition: product.imagePosition,
-                    backgroundSize: '393px auto',
-                }}
-            />
+            {product.image_url ? (
+                <img
+                    src={product.image_url}
+                    alt=""
+                    className="absolute top-2 left-1/2 h-[88px] w-[112px] -translate-x-1/2 object-contain"
+                />
+            ) : sprite ? (
+                <span
+                    aria-hidden="true"
+                    className={`absolute bg-no-repeat ${sprite.imageClass}`}
+                    style={{
+                        backgroundImage: `url(${posReference})`,
+                        backgroundPosition: sprite.imagePosition,
+                        backgroundSize: '393px auto',
+                    }}
+                />
+            ) : (
+                <span
+                    aria-hidden="true"
+                    className="absolute top-3 left-1/2 flex size-[76px] -translate-x-1/2 items-center justify-center rounded-full bg-[#fff4d8] text-[#ff9300]"
+                >
+                    <Box className="size-8" />
+                </span>
+            )}
 
             <div className="absolute right-[10px] bottom-[7px] left-[10px]">
                 <h2 className="truncate text-[11px] leading-4 font-semibold">
                     {product.name}
                 </h2>
                 <p className="text-[12px] leading-4 font-medium text-[#f48700]">
-                    {product.price}
+                    {formatCurrency(product.price)}
                 </p>
                 <p className="text-[9px] leading-4 text-[#5f5f5f]">
-                    {product.stock}
+                    Stok: {product.stock} pcs
                 </p>
             </div>
 
             <button
                 type="button"
+                disabled={product.stock === 0}
+                onClick={() =>
+                    router.post(
+                        addCartItem().url,
+                        { product_id: product.id, quantity: 1 },
+                        { preserveScroll: true },
+                    )
+                }
                 aria-label={`Tambahkan ${product.name} ke keranjang`}
-                className="absolute right-[12px] bottom-[9px] flex size-[24px] items-center justify-center rounded-full bg-[linear-gradient(145deg,#ffb500_0%,#ffc619_100%)] text-white"
+                className="absolute right-[12px] bottom-[9px] flex size-[24px] items-center justify-center rounded-full bg-[linear-gradient(145deg,#ffb500_0%,#ffc619_100%)] text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
                 <Plus
                     aria-hidden="true"
@@ -259,4 +321,12 @@ function ProductCard({ product }: { product: Product }) {
             </button>
         </article>
     );
+}
+
+function formatCurrency(value: number): string {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0,
+    }).format(value);
 }

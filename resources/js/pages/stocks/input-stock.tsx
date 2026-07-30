@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
     Bell,
@@ -14,13 +14,15 @@ import {
 import type { ChangeEvent, ReactNode } from 'react';
 import { useRef, useState } from 'react';
 import {
+    addDraft,
+    destroyDraft,
+} from '@/actions/App/Http/Controllers/StockInController';
+import {
     AppPageHeader,
     AppPageHeaderHeading,
 } from '@/components/app-page-header';
-import { dashboard } from '@/routes';
-import { confirmation } from '@/routes/stocks';
 import heroImage from '../../../../Design/Dashboard/726397882a4390f69ff6c2a3f7a8974af5901339.png';
-import { formatRupiah, ProductThumbnail, stockProducts } from './stock-in-data';
+import { formatRupiah, ProductThumbnail } from './stock-in-data';
 
 type StockFieldProps = {
     id: string;
@@ -80,10 +82,13 @@ function currencyValue(value: string) {
 export default function InputStock() {
     const cameraInput = useRef<HTMLInputElement>(null);
     const galleryInput = useRef<HTMLInputElement>(null);
-    const [name, setName] = useState('Indomie Goreng');
-    const [purchasePrice, setPurchasePrice] = useState('3000');
-    const [sellingPrice, setSellingPrice] = useState('3500');
-    const [quantity, setQuantity] = useState(50);
+    const form = useForm({
+        name: '',
+        purchase_price: '',
+        selling_price: '',
+        quantity: 1,
+        image: null as File | null,
+    });
     const [preview, setPreview] = useState<string | null>(null);
     const [fileError, setFileError] = useState('');
 
@@ -111,13 +116,16 @@ export default function InputStock() {
         const reader = new FileReader();
         reader.onload = () => {
             setPreview(String(reader.result));
+            form.setData('image', file);
             setFileError('');
         };
         reader.readAsDataURL(file);
     };
 
-    const updatePrice = (setter: (value: string) => void, value: string) =>
-        setter(onlyDigits(value));
+    const updatePrice = (
+        field: 'purchase_price' | 'selling_price',
+        value: string,
+    ) => form.setData(field, onlyDigits(value));
 
     return (
         <>
@@ -131,7 +139,7 @@ export default function InputStock() {
                     <div className="relative flex items-center justify-between">
                         <button
                             type="button"
-                            onClick={() => router.visit(dashboard().url)}
+                            onClick={() => router.delete(destroyDraft().url)}
                             aria-label="Kembali ke dashboard"
                             className="flex size-9 items-center justify-center rounded-[12px] bg-white/20 text-white transition active:scale-95"
                         >
@@ -163,7 +171,9 @@ export default function InputStock() {
                 <form
                     onSubmit={(event) => {
                         event.preventDefault();
-                        router.visit(confirmation().url);
+                        form.post(addDraft().url, {
+                            forceFormData: true,
+                        });
                     }}
                     className="relative z-10 mx-[13px] mt-[10px] rounded-[13px] bg-white px-[17px] pt-[14px] pb-[13px] shadow-[0_8px_24px_rgba(246,169,0,0.08)]"
                 >
@@ -177,8 +187,8 @@ export default function InputStock() {
                             label="Nama Produk"
                             helper="Gunakan nama produk yang mudah dikenali"
                             icon={<Package className="size-4 fill-[#707070]" />}
-                            value={name}
-                            onChange={setName}
+                            value={form.data.name}
+                            onChange={(value) => form.setData('name', value)}
                         />
 
                         <StockField
@@ -187,9 +197,9 @@ export default function InputStock() {
                             helper="Contoh: Rp 10.000"
                             icon={<WalletCards className="size-4" />}
                             inputMode="numeric"
-                            value={currencyValue(purchasePrice)}
+                            value={currencyValue(form.data.purchase_price)}
                             onChange={(value) =>
-                                updatePrice(setPurchasePrice, value)
+                                updatePrice('purchase_price', value)
                             }
                         />
 
@@ -199,9 +209,9 @@ export default function InputStock() {
                             helper="Harga jual sebaiknya lebih tinggi dari harga beli"
                             icon={<Tag className="size-4 fill-[#707070]" />}
                             inputMode="numeric"
-                            value={currencyValue(sellingPrice)}
+                            value={currencyValue(form.data.selling_price)}
                             onChange={(value) =>
-                                updatePrice(setSellingPrice, value)
+                                updatePrice('selling_price', value)
                             }
                         />
 
@@ -219,20 +229,24 @@ export default function InputStock() {
                                     required
                                     min={1}
                                     inputMode="numeric"
-                                    value={`${quantity} pcs`}
+                                    value={`${form.data.quantity} pcs`}
                                     onChange={(event) => {
                                         const next = Number(
                                             onlyDigits(event.target.value),
                                         );
-                                        setQuantity(Math.max(1, next || 1));
+                                        form.setData(
+                                            'quantity',
+                                            Math.max(1, next || 1),
+                                        );
                                     }}
                                     className="min-w-0 flex-1 bg-transparent text-[10px] outline-none"
                                 />
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        setQuantity((current) =>
-                                            Math.max(1, current - 1),
+                                        form.setData(
+                                            'quantity',
+                                            Math.max(1, form.data.quantity - 1),
                                         )
                                     }
                                     aria-label="Kurangi jumlah"
@@ -246,7 +260,10 @@ export default function InputStock() {
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        setQuantity((current) => current + 1)
+                                        form.setData(
+                                            'quantity',
+                                            form.data.quantity + 1,
+                                        )
                                     }
                                     aria-label="Tambah jumlah"
                                     className="mr-[5px] flex size-[23px] items-center justify-center rounded-[7px] border border-[#e4e4e4] text-[#0e223e]"
@@ -277,7 +294,10 @@ export default function InputStock() {
                                     />
                                 ) : (
                                     <ProductThumbnail
-                                        product={stockProducts[1]}
+                                        product={{
+                                            name: form.data.name || 'Produk',
+                                            image_url: null,
+                                        }}
                                     />
                                 )}
                             </div>
@@ -325,6 +345,11 @@ export default function InputStock() {
                                 {fileError}
                             </p>
                         )}
+                        {Object.values(form.errors)[0] && (
+                            <p className="mt-1 text-[8px] text-red-600">
+                                {Object.values(form.errors)[0]}
+                            </p>
+                        )}
                         <input
                             ref={cameraInput}
                             type="file"
@@ -353,33 +378,40 @@ export default function InputStock() {
                             ) : (
                                 <div className="origin-center scale-[0.72]">
                                     <ProductThumbnail
-                                        product={stockProducts[1]}
+                                        product={{
+                                            name: form.data.name || 'Produk',
+                                            image_url: null,
+                                        }}
                                     />
                                 </div>
                             )}
                         </div>
                         <div className="ml-[10px] min-w-0 flex-1">
                             <p className="truncate text-[11px] leading-[14px] font-bold text-[#0e223e]">
-                                {name || 'Nama Produk'}
+                                {form.data.name || 'Nama Produk'}
                             </p>
                             <div className="mt-1 grid grid-cols-[1fr_auto] gap-2 text-[8px] leading-[11px]">
                                 <div>
                                     <p>
                                         Harga beli:{' '}
                                         <strong>
-                                            {currencyValue(purchasePrice)}
+                                            {currencyValue(
+                                                form.data.purchase_price,
+                                            )}
                                         </strong>
                                     </p>
                                     <p>
                                         Harga jual:{' '}
                                         <strong>
-                                            {currencyValue(sellingPrice)}
+                                            {currencyValue(
+                                                form.data.selling_price,
+                                            )}
                                         </strong>
                                     </p>
                                 </div>
                                 <p className="self-center border-l border-[#ffe2a0] pl-3">
                                     Jumlah masuk:{' '}
-                                    <strong>{quantity} pcs</strong>
+                                    <strong>{form.data.quantity} pcs</strong>
                                 </p>
                             </div>
                         </div>
@@ -393,17 +425,18 @@ export default function InputStock() {
                     <div className="mt-[7px] grid grid-cols-2 gap-[7px]">
                         <button
                             type="button"
-                            onClick={() => router.visit(dashboard().url)}
+                            onClick={() => router.delete(destroyDraft().url)}
                             className="h-[28px] rounded-[8px] border border-[#0e223e] text-[10px] font-semibold text-[#0e223e]"
                         >
                             Batal
                         </button>
                         <button
                             type="submit"
-                            className="h-[28px] rounded-[8px] bg-[linear-gradient(90deg,#ffa600_0%,#ffc900_100%)] text-[10px] font-semibold text-white shadow-[0_5px_12px_rgba(253,185,0,0.18)]"
+                            disabled={form.processing}
+                            className="h-[28px] rounded-[8px] bg-[linear-gradient(90deg,#ffa600_0%,#ffc900_100%)] text-[10px] font-semibold text-white shadow-[0_5px_12px_rgba(253,185,0,0.18)] disabled:opacity-60"
                             data-test="submit-stock-input"
                         >
-                            Simpan Stock
+                            {form.processing ? 'Menyimpan...' : 'Simpan Stock'}
                         </button>
                     </div>
                 </form>
