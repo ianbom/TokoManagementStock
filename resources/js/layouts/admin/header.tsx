@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { IconBell, IconLogout, IconUserCircle } from '@tabler/icons-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -80,6 +80,10 @@ export default function AdminHeader() {
                             aria-label="Menu akun admin"
                         >
                             <Avatar className="size-8">
+                                <AvatarImage
+                                    src={user.photo_url ?? undefined}
+                                    alt={`Foto profil ${user.name}`}
+                                />
                                 <AvatarFallback>{initials}</AvatarFallback>
                             </Avatar>
                         </Button>

@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class UserService extends AdminService
 {
@@ -27,6 +28,7 @@ class UserService extends AdminService
                 'users.name',
                 'users.email',
                 'users.role',
+                'users.photo_url',
                 'users.email_verified_at',
                 'users.created_at',
                 'businesses.name as business_name',
@@ -59,6 +61,9 @@ class UserService extends AdminService
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'photo_url' => $user->photo_url === null
+                    ? null
+                    : Storage::disk('public')->url($user->photo_url),
                 'business' => $user->business_name ?? 'StockFlow',
                 'status' => $user->email_verified_at === null ? 'pending' : 'active',
                 'joinedAt' => $user->created_at?->toISOString(),

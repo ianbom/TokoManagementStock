@@ -10,8 +10,9 @@ import {
     Info,
     LogOut,
     Phone,
+    UserRound,
 } from 'lucide-react';
-import type { FormEvent } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
 import { useState } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import {
@@ -19,6 +20,7 @@ import {
     AppPageHeaderHeading,
 } from '@/components/app-page-header';
 import InputError from '@/components/input-error';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Dialog,
     DialogContent,
@@ -53,13 +55,31 @@ export default function Profile() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+    const [photoPreview, setPhotoPreview] = useState(auth.user.photo_url);
+    const initials = auth.user.name
+        .split(' ')
+        .map((part) => part[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
 
     const userForm = useForm({
+        _method: 'patch',
         name: auth.user.name,
+        photo_url: null as File | null,
         password: '',
         password_confirmation: '',
         current_password: '',
     });
+
+    const selectPhoto = (event: ChangeEvent<HTMLInputElement>) => {
+        const photo = event.target.files?.[0] ?? null;
+
+        userForm.setData('photo_url', photo);
+        setPhotoPreview(
+            photo === null ? auth.user.photo_url : URL.createObjectURL(photo),
+        );
+    };
     const businessForm = useForm({
         business_category: business?.business_category ?? 'Toko Kelontong',
         name: business?.name ?? 'Toko Ketintang Mart',
@@ -78,14 +98,17 @@ export default function Profile() {
             return;
         }
 
-        userForm.patch(ProfileController.update.url(), {
+        userForm.post(ProfileController.update.url(), {
+            forceFormData: true,
             preserveScroll: true,
-            onSuccess: () => {
+            onSuccess: (page) => {
                 userForm.reset(
+                    'photo_url',
                     'password',
                     'password_confirmation',
                     'current_password',
                 );
+                setPhotoPreview((page.props as PageProps).auth.user.photo_url);
                 setPasswordDialogOpen(false);
             },
         });
@@ -148,6 +171,45 @@ export default function Profile() {
                     </h2>
                     <form onSubmit={submitUser} className="mt-2">
                         <div className="space-y-3 rounded-[14px] bg-white px-4 py-[14px] shadow-[0_4px_14px_rgba(14,34,62,0.04)]">
+                            <div>
+                                <p className="text-[12px] leading-4 font-medium text-[#151515]">
+                                    Foto Profil
+                                </p>
+                                <div className="mt-2 flex items-center gap-3">
+                                    <Avatar className="size-14 border border-[#e1e1e1]">
+                                        <AvatarImage
+                                            src={photoPreview ?? undefined}
+                                            alt={`Foto profil ${auth.user.name}`}
+                                        />
+                                        <AvatarFallback className="bg-[#fff4cf] text-[13px] font-semibold text-[#0e223e]">
+                                            {initials}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <label
+                                        htmlFor="photo_url"
+                                        className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[9px] border border-[#d5d5d5] px-3 text-[11px] font-medium text-[#0e223e] transition hover:bg-[#fff9e8]"
+                                    >
+                                        <UserRound className="size-3.5" />
+                                        Pilih Foto
+                                        <input
+                                            id="photo_url"
+                                            name="photo_url"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            onChange={selectPhoto}
+                                            className="sr-only"
+                                        />
+                                    </label>
+                                </div>
+                                <p className="mt-1 text-[10px] text-[#858585]">
+                                    JPG, PNG, atau WebP. Maksimal 2 MB.
+                                </p>
+                                <InputError
+                                    className="mt-1 text-[11px]"
+                                    message={userForm.errors.photo_url}
+                                />
+                            </div>
+
                             <div>
                                 <label
                                     htmlFor="name"

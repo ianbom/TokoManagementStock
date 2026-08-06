@@ -24,6 +24,7 @@ class ProfileUpdateRequest extends FormRequest
         return [
             'name' => $this->nameRules(),
             'email' => $emailRules,
+            'photo_url' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'password' => ['nullable', 'string', Password::default(), 'confirmed'],
             'current_password' => ['nullable', 'required_with:password', 'string', 'current_password'],
         ];

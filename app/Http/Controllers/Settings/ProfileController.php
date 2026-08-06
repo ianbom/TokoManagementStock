@@ -12,10 +12,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -47,21 +50,43 @@ class ProfileController extends Controller
     {
         $validated = $request->validated();
         $user = $request->user();
+        $storedPhoto = $request->file('photo_url')?->store("profiles/{$user->id}", 'public');
 
-        $user->fill([
-            'name' => $validated['name'],
-            ...(isset($validated['email']) ? ['email' => $validated['email']] : []),
-        ]);
-
-        if (! empty($validated['password'])) {
-            $user->password = $validated['password'];
+        if ($storedPhoto === false) {
+            throw ValidationException::withMessages([
+                'photo_url' => 'Foto profil gagal disimpan.',
+            ]);
         }
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
+        $previousPhoto = $user->photo_url;
+
+        try {
+            $user->fill([
+                'name' => $validated['name'],
+                ...(isset($validated['email']) ? ['email' => $validated['email']] : []),
+                ...($storedPhoto === null ? [] : ['photo_url' => $storedPhoto]),
+            ]);
+
+            if (! empty($validated['password'])) {
+                $user->password = $validated['password'];
+            }
+
+            if ($user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
+
+            $user->save();
+        } catch (Throwable $exception) {
+            if ($storedPhoto !== null) {
+                Storage::disk('public')->delete($storedPhoto);
+            }
+
+            throw $exception;
         }
 
-        $user->save();
+        if ($storedPhoto !== null && $previousPhoto !== null) {
+            Storage::disk('public')->delete($previousPhoto);
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 

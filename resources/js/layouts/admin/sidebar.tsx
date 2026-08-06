@@ -6,12 +6,11 @@ import {
     IconLogout,
     IconPackage,
     IconReceipt,
-    IconReportAnalytics,
     IconShieldCheck,
     IconUsers,
 } from '@tabler/icons-react';
 import type { ComponentType } from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -164,6 +163,10 @@ export default function AdminSidebar() {
                             <DropdownMenuTrigger asChild>
                                 <SidebarMenuButton size="lg">
                                     <Avatar className="size-8 rounded-lg">
+                                        <AvatarImage
+                                            src={user.photo_url ?? undefined}
+                                            alt={`Foto profil ${user.name}`}
+                                        />
                                         <AvatarFallback className="rounded-lg">
                                             {initials}
                                         </AvatarFallback>

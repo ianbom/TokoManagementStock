@@ -5,7 +5,9 @@ namespace Tests\Feature\Settings;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -51,6 +53,74 @@ class ProfileUpdateTest extends TestCase
         $this->assertSame('Agus Santoso', $user->name);
         $this->assertNotNull($user->email);
         $this->assertTrue(Hash::check('password', $user->password));
+    }
+
+    public function test_profile_photo_can_be_uploaded_and_exposed_as_public_url(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('profile.update'), [
+                '_method' => 'patch',
+                'name' => $user->name,
+                'photo_url' => UploadedFile::fake()->image('profile.jpg'),
+                'password' => '',
+                'password_confirmation' => '',
+                'current_password' => '',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('profile.edit'));
+
+        $path = $user->refresh()->photo_url;
+
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+
+        $this->actingAs($user)
+            ->get(route('profile.edit'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('auth.user.photo_url', Storage::disk('public')->url($path)));
+    }
+
+    public function test_replacing_profile_photo_removes_the_previous_file(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $oldPath = 'profiles/'.$user->id.'/old.jpg';
+        Storage::disk('public')->put($oldPath, 'old image');
+        $user->update(['photo_url' => $oldPath]);
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => $user->name,
+                'photo_url' => UploadedFile::fake()->image('new.png'),
+                'password' => '',
+                'password_confirmation' => '',
+                'current_password' => '',
+            ])
+            ->assertSessionHasNoErrors();
+
+        Storage::disk('public')->assertMissing($oldPath);
+        Storage::disk('public')->assertExists($user->refresh()->photo_url);
+    }
+
+    public function test_profile_photo_rejects_non_image_files(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->from(route('profile.edit'))
+            ->patch(route('profile.update'), [
+                'name' => $user->name,
+                'photo_url' => UploadedFile::fake()->create('profile.pdf', 10, 'application/pdf'),
+                'password' => '',
+                'password_confirmation' => '',
+                'current_password' => '',
+            ])
+            ->assertSessionHasErrors('photo_url')
+            ->assertRedirect(route('profile.edit'));
     }
 
     public function test_password_can_be_updated_from_profile()

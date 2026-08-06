@@ -4,7 +4,6 @@ import {
     Bell,
     Camera,
     Image as ImageIcon,
-    Info,
     Minus,
     Package,
     Plus,
@@ -229,7 +228,7 @@ export default function InputStock() {
                                     required
                                     min={1}
                                     inputMode="numeric"
-                                    value={`${form.data.quantity} pcs`}
+                                    value={form.data.quantity}
                                     onChange={(event) => {
                                         const next = Number(
                                             onlyDigits(event.target.value),
@@ -366,7 +365,6 @@ export default function InputStock() {
                             className="sr-only"
                         />
                     </div>
-
 
                     <div className="mt-[7px] grid grid-cols-2 gap-[7px]">
                         <button

@@ -13,6 +13,7 @@ import type {
     AdminMetric,
     AdminPaginator,
 } from '@/components/admin/admin-list-page';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { users as adminUsers } from '@/routes/admin';
 
@@ -21,6 +22,7 @@ type UserRow = {
     name: string;
     email: string;
     role: 'admin' | 'store' | 'supplier';
+    photo_url: string | null;
     business: string;
     status: 'active' | 'pending';
     joinedAt: string;
@@ -48,14 +50,32 @@ const columns: ColumnDef<UserRow>[] = [
     {
         accessorKey: 'name',
         header: 'Pengguna',
-        cell: ({ row }) => (
-            <div>
-                <p className="font-medium">{row.original.name}</p>
-                <p className="text-xs text-muted-foreground">
-                    {row.original.email}
-                </p>
-            </div>
-        ),
+        cell: ({ row }) => {
+            const initials = row.original.name
+                .split(' ')
+                .map((part) => part[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase();
+
+            return (
+                <div className="flex items-center gap-3">
+                    <Avatar className="size-9">
+                        <AvatarImage
+                            src={row.original.photo_url ?? undefined}
+                            alt={`Foto profil ${row.original.name}`}
+                        />
+                        <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-medium">{row.original.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                            {row.original.email}
+                        </p>
+                    </div>
+                </div>
+            );
+        },
     },
     {
         accessorKey: 'role',

@@ -10,6 +10,7 @@ use App\Models\User;
 use DateTimeInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -233,6 +234,7 @@ class AdminDashboardTest extends TestCase
             'business_id' => $business->id,
             'role' => 'store',
             'name' => 'Pengguna Menunggu',
+            'photo_url' => 'profiles/2/profile.jpg',
         ]);
 
         $this->actingAs($admin)
@@ -245,7 +247,11 @@ class AdminDashboardTest extends TestCase
                 ->where('summary.suppliers.value', 0)
                 ->has('rows.data', 1)
                 ->where('rows.data.0.business', 'Toko Utama')
-                ->where('rows.data.0.status', 'pending'));
+                ->where('rows.data.0.status', 'pending')
+                ->where(
+                    'rows.data.0.photo_url',
+                    Storage::disk('public')->url('profiles/2/profile.jpg'),
+                ));
     }
 
     /** @return array<int, array{string, string}> */

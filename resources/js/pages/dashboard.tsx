@@ -10,6 +10,7 @@ import {
     AppPageHeader,
     AppPageHeaderHeading,
 } from '@/components/app-page-header';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { index as pos } from '@/routes/pos';
 import { index as stockList, input } from '@/routes/stocks';
 import { buy, index as supplierList } from '@/routes/suppliers';
@@ -82,13 +83,19 @@ export default function Dashboard({
             >
                 <div className="relative flex items-center justify-between">
                     <div className="flex min-w-0 items-center gap-4">
-                        <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#67c8ee] text-[#0e223e] ring-2 ring-white/10">
-                            <UserRound
-                                aria-hidden="true"
-                                className="size-8"
-                                strokeWidth={2.2}
+                        <Avatar className="size-12 shrink-0 bg-[#67c8ee] text-[#0e223e] ring-2 ring-white/10">
+                            <AvatarImage
+                                src={auth.user.photo_url ?? undefined}
+                                alt={`Foto profil ${auth.user.name}`}
                             />
-                        </div>
+                            <AvatarFallback className="bg-[#67c8ee] text-[#0e223e]">
+                                <UserRound
+                                    aria-hidden="true"
+                                    className="size-8"
+                                    strokeWidth={2.2}
+                                />
+                            </AvatarFallback>
+                        </Avatar>
                         <div className="min-w-0">
                             <p className="truncate text-[19px] leading-[1.25] font-bold tracking-[-0.2px]">
                                 {auth.user.name}
